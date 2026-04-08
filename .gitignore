@@ -1,0 +1,65 @@
+# ============================
+# Build directories
+# ============================
+build/
+build-*/
+out/
+bin/
+obj/
+
+# VS-specific intermediate files
+*.obj
+*.pdb
+*.idb
+*.ilk
+*.ipdb
+*.iobj
+*.tlog
+*.lastbuildstate
+*.log
+*.cachefile
+
+# ============================
+# CMake generated files
+# ============================
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+Testing/
+Makefile
+install_manifest.txt
+
+# Ninja (if using VS + Ninja)
+.ninja_deps
+.ninja_log
+rules.ninja
+build.ninja
+
+# ============================
+# Visual Studio user files
+# ============================
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio
+.vs/
+
+# VS Code
+.vscode/
+
+# JetBrains
+.idea/
+
+# ============================
+# OS junk
+# ============================
+.DS_Store
+Thumbs.db
+
+# ============================
+# vcpkg build artifacts
+# ============================
+vcpkg_installed/
