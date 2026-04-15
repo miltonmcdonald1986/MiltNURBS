@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Power Basis Curve Visualizer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #00d9ff;
+            margin-bottom: 10px;
+        }
+
+        #canvas {
+            border: 2px solid #00d9ff;
+            background: #16213e;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        button {
+            background: #00d9ff;
+            color: #1a1a2e;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+            button:hover {
+                background: #00b8d4;
+            }
+
+        .info {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #00d9ff;
+            font-family: 'Courier New', monospace;
+            min-width: 300px;
+        }
+
+        .info-line {
+            margin: 5px 0;
+        }
+
+        .legend {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #00d9ff;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        .legend-item {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Power Basis Curve Visualizer</h1>
+    <p>Demonstrating Horner's Algorithm: C(t) = c₀ + c₁·t + c₂·t² + c₃·t³ + ...</p>
+
+    <canvas id="canvas" width="800" height="600"></canvas>
+
+    <div class="controls">
+        <button onclick="prevCurve()">← Previous Curve</button>
+        <button onclick="toggleAnimation()">⏯ Play/Pause</button>
+        <button onclick="nextCurve()">Next Curve →</button>
+    </div>
+
+    <div class="info">
+        <div class="info-line">Curve Degree: <span id="degree">-</span></div>
+        <div class="info-line">Parameter t: <span id="tvalue">0.00</span></div>
+        <div class="info-line">C(t) = (<span id="xvalue">0.0</span>, <span id="yvalue">0.0</span>)</div>
+    </div>
+
+    <div class="legend">
+        <strong>Legend:</strong>
+        <div class="legend-item">🟡 c₀ - Initial position (curve starts here at t=0)</div>
+        <div class="legend-item">🟢 c₁ - First derivative (velocity/tangent)</div>
+        <div class="legend-item">🟣 c₂ - Second derivative (acceleration/curvature)</div>
+        <div class="legend-item">🟠 c₃+ - Higher order shape terms</div>
+        <div class="legend-item">🔴 C(t) - Current evaluation point</div>
+    </div>
+
+    <script src="horner1.js"></script>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        Module.onRuntimeInitialized = function() {
+        Module._init();
+        animate();
+        };
+
+        function prevCurve() {
+        Module._prevCurve();
+        }
+
+        function nextCurve() {
+        Module._nextCurve();
+        }
+
+        function toggleAnimation() {
+        Module._toggleAnimation();
+        }
+
+        // Draw an arrow from (x1, y1) to (x2, y2)
+        function drawArrow(x1, y1, x2, y2, color, label) {
+        const headLength = 15;
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const length = Math.sqrt(dx * dx + dy * dy);
+
+        if (length < 1) return; // Don't draw tiny arrows
+
+        const angle = Math.atan2(dy, dx);
+
+        // Draw the line
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+
+        // Draw the arrowhead
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(
+        x2 - headLength * Math.cos(angle - Math.PI / 6),
+        y2 - headLength * Math.sin(angle - Math.PI / 6)
+        );
+        ctx.lineTo(
+        x2 - headLength * Math.cos(angle + Math.PI / 6),
+        y2 - headLength * Math.sin(angle + Math.PI / 6)
+        );
+        ctx.closePath();
+        ctx.fill();
+
+        // Draw label at the end of the arrow
+        ctx.font = 'bold 14px "Segoe UI"';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+
+        const labelX = x2 + 10;
+        const labelY = y2;
+
+        ctx.strokeStyle = '#16213e';
+        ctx.lineWidth = 3;
+        ctx.strokeText(label, labelX, labelY);
+
+        ctx.fillStyle = color;
+        ctx.fillText(label, labelX, labelY);
+        }
+
+        function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Get bounding box from C++
+        const minX = Module._getBoundsMinX();
+        const maxX = Module._getBoundsMaxX();
+        const minY = Module._getBoundsMinY();
+        const maxY = Module._getBoundsMaxY();
+
+        const dataWidth = maxX - minX;
+        const dataHeight = maxY - minY;
+
+        // Calculate scale to fit canvas with margins
+        const margin = 40;
+        const scaleX = (canvas.width - 2 * margin) / dataWidth;
+        const scaleY = (canvas.height - 2 * margin) / dataHeight;
+        const scale = Math.min(scaleX, scaleY);
+
+        // Calculate translation to center the curve
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+
+        // Transform from data space to canvas space
+        function toCanvasX(x) {
+        return (x - centerX) * scale + canvas.width / 2;
+        }
+
+        function toCanvasY(y) {
+        return canvas.height / 2 - (y - centerY) * scale;
+        }
+
+        // Update animation
+        const t = Module._updateAnimation();
+
+        // Draw full curve
+        ctx.beginPath();
+        ctx.strokeStyle = '#00d9ff';
+        ctx.lineWidth = 2;
+
+        const samples = 200;
+        for (let i = 0; i <= samples; i++) {
+        const param = i / samples;
+        Module._evaluateCurve(param);
+        const x = toCanvasX(Module._getLastX());
+        const y = toCanvasY(Module._getLastY());
+
+        if (i === 0) {
+        ctx.moveTo(x, y);
+        } else {
+        ctx.lineTo(x, y);
+        }
+        }
+        ctx.stroke();
+
+        // Get c₀ (the base point)
+        const c0x = toCanvasX(Module._getCoeffX(0));
+        const c0y = toCanvasY(Module._getCoeffY(0));
+
+        // Define colors for different coefficient orders
+        const colors = [
+        '#ffff00',  // c₀ - yellow
+        '#00ff00',  // c₁ - green
+        '#ff00ff',  // c₂ - magenta
+        '#ff8800',  // c₃ - orange
+        '#00ffff',  // c₄+ - cyan
+        ];
+
+        const numCoeffs = Module._getNumCoeffs();
+
+        // Draw coefficient vectors (c₁, c₂, c₃, ... as arrows from c₀)
+        for (let i = 1; i < numCoeffs; i++) {
+        const vectorX = Module._getCoeffX(i);
+        const vectorY = Module._getCoeffY(i);
+
+        // Scale the vector for display (they can be very large or small)
+        const vectorScale = 0.3; // Adjust this to make vectors more visible
+        const endX = toCanvasX(Module._getCoeffX(0) + vectorX * vectorScale);
+        const endY = toCanvasY(Module._getCoeffY(0) + vectorY * vectorScale);
+
+        const color = colors[Math.min(i, colors.length - 1)];
+        drawArrow(c0x, c0y, endX, endY, color, `c${i}`);
+        }
+
+        // Draw c₀ as a point (the origin)
+        ctx.fillStyle = colors[0];
+        ctx.beginPath();
+        ctx.arc(c0x, c0y, 7, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // Label c₀
+        ctx.font = 'bold 14px "Segoe UI"';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.strokeStyle = '#16213e';
+        ctx.lineWidth = 3;
+        ctx.strokeText('c₀', c0x + 10, c0y);
+        ctx.fillStyle = colors[0];
+        ctx.fillText('c₀', c0x + 10, c0y);
+
+        // Draw current evaluation point
+        Module._evaluateCurve(t);
+        const currentX = toCanvasX(Module._getLastX());
+        const currentY = toCanvasY(Module._getLastY());
+        ctx.fillStyle = '#ff0055';
+        ctx.beginPath();
+        ctx.arc(currentX, currentY, 8, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // Draw label for current point
+        ctx.strokeStyle = '#16213e';
+        ctx.lineWidth = 3;
+        ctx.strokeText('C(t)', currentX + 12, currentY);
+        ctx.fillStyle = '#ff0055';
+        ctx.fillText('C(t)', currentX + 12, currentY);
+
+        // Update info display
+        document.getElementById('degree').textContent = Module._getCurveDegree();
+        document.getElementById('tvalue').textContent = t.toFixed(2);
+        document.getElementById('xvalue').textContent = Module._getLastX().toFixed(1);
+        document.getElementById('yvalue').textContent = Module._getLastY().toFixed(1);
+
+        requestAnimationFrame(animate);
+        }
+    </script>
+</body>
+</html>
+
+
