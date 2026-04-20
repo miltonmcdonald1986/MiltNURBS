@@ -1,526 +1,321 @@
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
+#include <expected>
+#include <print>
+#include <string>
+
+#include <entt/entt.hpp>
+
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
-#include <miltnurbs/vector.h>
-#include <miltnurbs/horner.h>
-#include <iostream>
-#include <vector>
-#include <array>
-#include <cmath>
 
-// Simple vertex shader
-const char* vertexShaderSource = R"(
-#version 330 core
-layout (location = 0) in vec2 aPos;
-uniform float aspectRatio;
+struct App
+{
+    struct {
+        struct {
+            struct {
+                int major{ 3 };
+                int minor{ 3 };
+            } version;
 
-void main() {
-    gl_Position = vec4(aPos.x / aspectRatio, aPos.y, 0.0, 1.0);
+            int profile{ GLFW_OPENGL_CORE_PROFILE };
+        } gl;
+
+        struct {
+            const char* title{ "horner1 Demo" };
+            GLFWmonitor* pMonitor{ nullptr };
+            GLFWwindow* pShare{ nullptr };
+        } win;
+    } config;
+
+    struct {
+        struct {
+            GLFWwindow* pHandle{ nullptr };
+            int height{ 600 };
+            int width{ 800 };
+        } win;
+
+        entt::registry reg;
+    } state;
+};
+
+void HandleGLFWError(int error_code, const char* description)
+{
+	std::print("GLFW Error (code {}): {}\n", error_code, description);
 }
-)";
 
-// Simple fragment shader
-const char* fragmentShaderSource = R"(
-#version 330 core
-out vec4 FragColor;
-uniform vec3 color;
+// This function will be called whenever the window is resized, allowing us to adjust the OpenGL viewport accordingly.
+void HandleGLFWFramebufferSizeEvent(GLFWwindow* pWindow, int w, int h)
+{
+    if (App* app = static_cast<App*>(glfwGetWindowUserPointer(pWindow)))
+    {
+        app->state.win.width = w;
+        app->state.win.height = h;
+    }
 
-void main() {
-    FragColor = vec4(color, 1.0);
+    glViewport(0, 0, w, h);
 }
-)";
 
-GLuint compileShader(GLenum type, const char* source) {
-    GLuint shader = glCreateShader(type);
-    glShaderSource(shader, 1, &source, nullptr);
-    glCompileShader(shader);
+void Shutdown(App& app)
+{
+    glfwDestroyWindow(app.state.win.pHandle);
+    app.state.win.pHandle = nullptr;
+    glfwTerminate();
+}
+
+// Initializes GLFW, creates a window, and sets up the OpenGL context. Returns an error message if any step fails.
+std::expected<void, std::string> InitPlatform(App& app)
+{
+    glfwSetErrorCallback(HandleGLFWError);
+
+    if (glfwInit() != GLFW_TRUE)
+        return std::unexpected("Failed to initialize GLFW");
+
+    // Set the OpenGL version and profile we want to use.
+	auto& gl = app.config.gl;
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, gl.version.major);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, gl.version.minor);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, gl.profile);
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
+    // Create a window.
+	auto& winState = app.state.win;
+	auto& winConfig = app.config.win;
+    if (GLFWwindow* window = glfwCreateWindow(winState.width, winState.height, winConfig.title, winConfig.pMonitor, winConfig.pShare))
+        winState.pHandle = window;
+    else
+    {
+        Shutdown(app);
+		return std::unexpected("Failed to create GLFW window");
+    }
+
+    glfwSetWindowUserPointer(winState.pHandle, &app);
+    glfwSetFramebufferSizeCallback(winState.pHandle, HandleGLFWFramebufferSizeEvent);
     
-    int success;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        char infoLog[512];
-        glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-        std::cerr << "Shader compilation failed:\n" << infoLog << "\n";
-    }
-    return shader;
+	return {};
 }
 
-GLuint createShaderProgram() {
-    GLuint vertexShader = compileShader(GL_VERTEX_SHADER, vertexShaderSource);
-    GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
+std::expected<void, std::string> InitGLContext(App& app)
+{
+	// Make the OpenGL context of our window current on the calling thread.
+    glfwMakeContextCurrent(app.state.win.pHandle);
+    
+	// Enable V-Sync
+    glfwSwapInterval(1);
 
-    GLuint program = glCreateProgram();
-    glAttachShader(program, vertexShader);
-    glAttachShader(program, fragmentShader);
-    glLinkProgram(program);
+    // Initialize OpenGL function pointers using gl3w (or any other OpenGL loader).
+    if (gl3wInit() != 0) 
+        return std::unexpected("Failed to initialize gl3w");
 
-    int success;
-    glGetProgramiv(program, GL_LINK_STATUS, &success);
-    if (!success) {
-        char infoLog[512];
-        glGetProgramInfoLog(program, 512, nullptr, infoLog);
-        std::cerr << "Shader program linking failed:\n" << infoLog << "\n";
+    return {};
+}
+
+std::expected<void, std::string> InitGLState(App &app)
+{
+    // Set the initial OpenGL viewport to match the window size.
+    int w, h;
+    glfwGetFramebufferSize(app.state.win.pHandle, &w, &h);
+    glViewport(0, 0, w, h);
+
+	// Enable depth testing to ensure correct rendering of 3D objects based on their distance from the camera.
+    glEnable(GL_DEPTH_TEST); 
+    
+	// Set the depth function to GL_LESS, which means that a fragment will be drawn if it is closer to the camera than the existing fragment at that pixel.
+    glDepthFunc(GL_LESS);
+    
+    // Set the clear color to a dark gray.
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+
+	// Check for any OpenGL errors that may have occurred during initialization.
+    if (glGetError() != GL_NO_ERROR)
+        return std::unexpected("Failed to init GL state");
+
+    return {};
+}
+
+struct Shader
+{
+	GLuint id{ 0 };
+};
+
+struct MeshGL {
+    GLuint vao{ 0 };
+    GLuint vbo{ 0 };
+    GLsizei vertexCount{ 0 };
+};
+
+std::expected<void, std::string> Update(App& /*app*/)
+{
+    return {};
+}
+
+std::expected<void, std::string> Render(App& app)
+{
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    auto view = app.state.reg.view<Shader, MeshGL>();
+    for (auto [entity, shader, mesh] : view.each())
+    {
+        glUseProgram(shader.id);
+        glBindVertexArray(mesh.vao); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+        glDrawArrays(GL_TRIANGLES, 0, mesh.vertexCount);
     }
 
+    return {};
+}
+
+std::expected<GLuint, std::string> CreateBasicShader()
+{
+    const char* vertexShaderSource = "#version 330 core\n"
+        "layout (location = 0) in vec3 aPos;\n"
+        "void main()\n"
+        "{\n"
+        "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+        "}\0";
+
+    const char* fragmentShaderSource = "#version 330 core\n"
+        "out vec4 FragColor;\n"
+        "void main()\n"
+        "{\n"
+        "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+        "}\n\0";
+
+    // build and compile our shader program
+    // ------------------------------------
+    // vertex shader
+    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glCompileShader(vertexShader);
+    // check for shader compile errors
+    int success;
+    char infoLog[512];
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+        return std::unexpected(std::format("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n{}\n", infoLog));
+    }
+    // fragment shader
+    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+    // check for shader compile errors
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+        return std::unexpected(std::format("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n{}\n", infoLog));
+    }
+    // link shaders
+    unsigned int shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+    // check for linking errors
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        return std::unexpected(std::format("ERROR::SHADER::PROGRAM::LINKING_FAILED\n{}\n", infoLog));
+    }
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    return program;
+    return shaderProgram;
 }
 
-std::vector<float> generateCircleVertices(float centerX, float centerY, float radius, int segments = 64) {
-    std::vector<float> vertices;
-    vertices.reserve((segments + 2) * 2);
+std::expected<MeshGL, std::string>
+CreateMeshGL(const float* vertices, std::size_t floatCount,
+    GLint componentsPerVertex = 3)
+{
+    MeshGL mesh{};
 
-    vertices.push_back(centerX);
-    vertices.push_back(centerY);
+    // Compute vertex count
+    if (floatCount % componentsPerVertex != 0)
+        return std::unexpected("Vertex data size does not match attribute layout");
 
-    for (int i = 0; i <= segments; ++i) {
-        float angle = 2.0f * 3.14159265359f * i / segments;
-        float x = centerX + radius * std::cos(angle);
-        float y = centerY + radius * std::sin(angle);
-        vertices.push_back(x);
-        vertices.push_back(y);
-    }
+    mesh.vertexCount = static_cast<GLsizei>(floatCount / componentsPerVertex);
 
-    return vertices;
+    // --- VAO ---
+    glGenVertexArrays(1, &mesh.vao);
+    glBindVertexArray(mesh.vao);
+
+    // --- VBO ---
+    glGenBuffers(1, &mesh.vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
+    glBufferData(GL_ARRAY_BUFFER,
+        floatCount * sizeof(float),
+        vertices,
+        GL_STATIC_DRAW);
+
+    // --- Vertex Attribute ---
+    glVertexAttribPointer(
+        0,                          // location
+        componentsPerVertex,        // vec2, vec3, vec4
+        GL_FLOAT,
+        GL_FALSE,
+        componentsPerVertex * sizeof(float),
+        (void*)0
+    );
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
+
+    if (glGetError() != GL_NO_ERROR)
+        return std::unexpected("Failed to create MeshGL");
+
+    return mesh;
 }
 
-std::vector<float> generateArrowheadVertices(float startX, float startY, float endX, float endY, float arrowSize = 0.08f) {
-    std::vector<float> vertices;
-    vertices.reserve(6);
-
-    float dirX = endX - startX;
-    float dirY = endY - startY;
-    float dirLen = std::sqrt(dirX * dirX + dirY * dirY);
-
-    if (dirLen > 0.001f) {
-        dirX /= dirLen;
-        dirY /= dirLen;
-
-        float perpX = -dirY;
-        float perpY = dirX;
-
-        // Tip
-        vertices.push_back(endX);
-        vertices.push_back(endY);
-
-        // Back left
-        vertices.push_back(endX - dirX * arrowSize - perpX * arrowSize * 0.5f);
-        vertices.push_back(endY - dirY * arrowSize - perpY * arrowSize * 0.5f);
-
-        // Back right
-        vertices.push_back(endX - dirX * arrowSize + perpX * arrowSize * 0.5f);
-        vertices.push_back(endY - dirY * arrowSize + perpY * arrowSize * 0.5f);
-    }
-
-    return vertices;
-}
-
-int main() {
-    // Initialize GLFW
-    if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW\n";
+int main(void)
+{
+	// Create an instance of our application state (if we had any).
+	App app{};
+	
+    if (auto result = InitPlatform(app); !result)
+    {
+        std::print("Failed to initialize GLFW: {}\n", result.error());
         return -1;
     }
 
-    // GL 3.3 + GLSL 330
-    const char* glsl_version = "#version 330";
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    // Create window
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Horner1 Demo - Animated Evaluation", nullptr, nullptr);
-    if (!window) {
-        std::cerr << "Failed to create GLFW window\n";
-        glfwTerminate();
+	if (auto result = InitGLContext(app); !result)
+    {
+        std::print("Failed to initialize OpenGL context: {}\n", result.error());
         return -1;
     }
 
-    glfwMakeContextCurrent(window);
-    glfwSwapInterval(1);
-
-    // Initialize gl3w (MUST be called after context is current)
-    if (gl3wInit()) {
-        std::cerr << "Failed to initialize gl3w\n";
-		glfwDestroyWindow(window);
-		glfwTerminate();
+    if (auto result = InitGLState(app); !result)
+    {
+        std::print("Failed to initialize OpenGL state: {}\n", result.error());
         return -1;
     }
 
-    std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << "\n";
-    std::cout << "GLAD initialized successfully!\n";
+	// Let's create a triangle for demo purposes.
+	entt::entity ent_triangle = app.state.reg.create();
+	app.state.reg.emplace<Shader>(ent_triangle, CreateBasicShader().value_or(0U));
+	constexpr float triangleVerts[] = { 0.0f,  0.5f, 0.0f, -0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f };
+	app.state.reg.emplace<MeshGL>(ent_triangle, CreateMeshGL(triangleVerts, 9U).value_or(MeshGL{}));
 
-    // Setup ImGui
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    ImGui::StyleColorsDark();
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init(glsl_version);
+    entt::entity ent_triangle_upside_down = app.state.reg.create();
+	app.state.reg.emplace<Shader>(ent_triangle_upside_down, CreateBasicShader().value_or(0U));
+    constexpr float triangleVerts2[] = { 0.0f, -0.5f, 0.0f, -0.5f,  0.5f, 0.0f, 0.5f,  0.5f, 0.0f };
+    app.state.reg.emplace<MeshGL>(ent_triangle_upside_down, CreateMeshGL(triangleVerts2, 9U).value_or(MeshGL{}));
 
-    // Create shader program
-    GLuint shaderProgram = createShaderProgram();
-    GLint colorLoc = glGetUniformLocation(shaderProgram, "color");
-    GLint aspectRatioLoc = glGetUniformLocation(shaderProgram, "aspectRatio");
-
-    // Coefficients for a cubic Bézier curve
-    using Vec2 = miltnurbs::vector::Vector<double, 2>;
-    std::array<Vec2, 4> coefficients{
-        Vec2(-0.8, -0.5),
-        Vec2(-0.3,  0.8),
-        Vec2( 0.3, -0.8),
-        Vec2( 0.8,  0.5)
-    };
-
-    // Create VAO and VBO for circle
-    GLuint VAO, VBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, 66 * 2 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glBindVertexArray(0);
-
-    // Create VAO and VBO for curve path
-    GLuint pathVAO, pathVBO;
-    glGenVertexArrays(1, &pathVAO);
-    glGenBuffers(1, &pathVBO);
-    glBindVertexArray(pathVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, pathVBO);
-
-    int pathSegments = 200;
-    std::vector<float> pathVertices;
-    pathVertices.reserve(pathSegments * 2);
-    for (int i = 0; i < pathSegments; ++i) {
-        double t = static_cast<double>(i) / (pathSegments - 1);
-        Vec2 pathPoint = miltnurbs::horner::horner1(coefficients, t);
-        pathVertices.push_back(static_cast<float>(pathPoint[0]));
-        pathVertices.push_back(static_cast<float>(pathPoint[1]));
-    }
-
-    glBufferData(GL_ARRAY_BUFFER, pathVertices.size() * sizeof(float), pathVertices.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glBindVertexArray(0);
-
-    // Create VAO and VBO for coefficient point
-    GLuint coeffVAO, coeffVBO;
-    glGenVertexArrays(1, &coeffVAO);
-    glGenBuffers(1, &coeffVBO);
-    glBindVertexArray(coeffVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, coeffVBO);
-    glBufferData(GL_ARRAY_BUFFER, 66 * 2 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glBindVertexArray(0);
-
-    // Create VAO and VBO for C1 vector
-    GLuint c1VAO, c1VBO;
-    glGenVertexArrays(1, &c1VAO);
-    glGenBuffers(1, &c1VBO);
-    glBindVertexArray(c1VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, c1VBO);
-    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glBindVertexArray(0);
-
-    // Create VAO and VBO for C2 vector
-    GLuint c2VAO, c2VBO;
-    glGenVertexArrays(1, &c2VAO);
-    glGenBuffers(1, &c2VBO);
-    glBindVertexArray(c2VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, c2VBO);
-    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glBindVertexArray(0);
-
-    // Create VAO and VBO for C1 arrowhead
-    GLuint c1ArrowVAO, c1ArrowVBO;
-    glGenVertexArrays(1, &c1ArrowVAO);
-    glGenBuffers(1, &c1ArrowVBO);
-    glBindVertexArray(c1ArrowVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, c1ArrowVBO);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glBindVertexArray(0);
-
-    // Create VAO and VBO for C2 arrowhead
-    GLuint c2ArrowVAO, c2ArrowVBO;
-    glGenVertexArrays(1, &c2ArrowVAO);
-    glGenBuffers(1, &c2ArrowVBO);
-    glBindVertexArray(c2ArrowVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, c2ArrowVBO);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glBindVertexArray(0);
-
-    // Animation state
-    double u = 0.0;
-    double speed = 0.3;
-    bool animate = true;
-    float circleRadius = 0.1f;
-    int circleSegments = 64;
-    bool showPath = true;
-
-    // Main loop
-    while (!glfwWindowShouldClose(window)) {
+	auto* pWin = app.state.win.pHandle;
+    while (!glfwWindowShouldClose(pWin))
+    {
+		// Poll for and process events (e.g., keyboard input, mouse movement, window resizing).
         glfwPollEvents();
 
-        // Animate u
-        if (animate) {
-            u += speed * io.DeltaTime;
-            if (u > 1.0) {
-                u = 0.0;
-            }
-        }
+		if (auto result = Update(app); !result)
+			std::print("Failed to update frame: {}\n", result.error());
 
-        // Evaluate curve at current u using Horner's method
-        Vec2 point = miltnurbs::horner::horner1(coefficients, u);
+        if (auto result = Render(app); !result)
+			std::print("Failed to render frame: {}\n", result.error());
 
-        // Generate circle vertices centered at the evaluated point
-        std::vector<float> circleVertices = generateCircleVertices(
-            static_cast<float>(point[0]),
-            static_cast<float>(point[1]),
-            circleRadius,
-            circleSegments
-        );
-
-        // Update circle vertex buffer
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, circleVertices.size() * sizeof(float), circleVertices.data());
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        // Generate coefficient circle vertices with same radius
-        std::vector<float> coeffVertices = generateCircleVertices(
-            static_cast<float>(coefficients[0][0]),
-            static_cast<float>(coefficients[0][1]),
-            circleRadius,
-            circleSegments
-        );
-
-        // Update coefficient circle vertex buffer
-        glBindBuffer(GL_ARRAY_BUFFER, coeffVBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, coeffVertices.size() * sizeof(float), coeffVertices.data());
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        // Generate C1 vector vertices (from C0 to C0 + C1)
-        float c1Vertices[4] = {
-            static_cast<float>(coefficients[0][0]),
-            static_cast<float>(coefficients[0][1]),
-            static_cast<float>(coefficients[0][0] + coefficients[1][0]),
-            static_cast<float>(coefficients[0][1] + coefficients[1][1])
-        };
-
-        // Update C1 vector vertex buffer
-        glBindBuffer(GL_ARRAY_BUFFER, c1VBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, 4 * sizeof(float), c1Vertices);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        // Generate C2 vector vertices (from C0 to C0+C2)
-        float c2Vertices[4] = {
-            static_cast<float>(coefficients[0][0]),
-            static_cast<float>(coefficients[0][1]),
-            static_cast<float>(coefficients[0][0] + coefficients[2][0]),
-            static_cast<float>(coefficients[0][1] + coefficients[2][1])
-        };
-
-        // Update C2 vector vertex buffer
-        glBindBuffer(GL_ARRAY_BUFFER, c2VBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, 4 * sizeof(float), c2Vertices);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        // Generate C1 arrowhead vertices
-        std::vector<float> c1ArrowVertices = generateArrowheadVertices(
-            static_cast<float>(coefficients[0][0]),
-            static_cast<float>(coefficients[0][1]),
-            static_cast<float>(coefficients[0][0] + coefficients[1][0]),
-            static_cast<float>(coefficients[0][1] + coefficients[1][1]),
-            0.08f
-        );
-
-        // Update C1 arrowhead vertex buffer
-        if (!c1ArrowVertices.empty()) {
-            glBindBuffer(GL_ARRAY_BUFFER, c1ArrowVBO);
-            glBufferSubData(GL_ARRAY_BUFFER, 0, c1ArrowVertices.size() * sizeof(float), c1ArrowVertices.data());
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-        }
-
-        // Generate C2 arrowhead vertices
-        std::vector<float> c2ArrowVertices = generateArrowheadVertices(
-            static_cast<float>(coefficients[0][0]),
-            static_cast<float>(coefficients[0][1]),
-            static_cast<float>(coefficients[0][0] + coefficients[2][0]),
-            static_cast<float>(coefficients[0][1] + coefficients[2][1]),
-            0.08f
-        );
-
-        // Update C2 arrowhead vertex buffer
-        if (!c2ArrowVertices.empty()) {
-            glBindBuffer(GL_ARRAY_BUFFER, c2ArrowVBO);
-            glBufferSubData(GL_ARRAY_BUFFER, 0, c2ArrowVertices.size() * sizeof(float), c2ArrowVertices.data());
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-        }
-
-        // ImGui UI
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        ImGui::Begin("Horner1 Animation");
-        ImGui::Text("Evaluating curve using Horner's method");
-        ImGui::Separator();
-        
-        ImGui::Text("Coefficients:");
-        for (size_t i = 0; i < coefficients.size(); ++i) {
-            ImGui::Text("  a[%zu]: (%.2f, %.2f)", i, coefficients[i][0], coefficients[i][1]);
-        }
-        
-        ImGui::Separator();
-        double u0{ 0. };
-        double u1{ 1. };
-        ImGui::SliderScalar("u", ImGuiDataType_Double, &u, &u0, &u1);
-        ImGui::Text("Current point: (%.3f, %.3f)", point[0], point[1]);
-        ImGui::Separator();
-        
-		ImGui::Checkbox("Animate", &animate);
-		double s0{ 0.1 };
-		double s1{ 2.0 };
-		ImGui::SliderScalar("Speed", ImGuiDataType_Double, &speed, &s0, &s1);
-		ImGui::SliderFloat("Circle Radius", &circleRadius, 0.01f, 0.1f);
-		ImGui::Checkbox("Show Path", &showPath);
-		ImGui::Separator();
-		ImGui::Text("%.1f FPS", io.Framerate);
-		ImGui::End();
-
-		// Add coefficient label to draw list
-		int display_w, display_h;
-		glfwGetFramebufferSize(window, &display_w, &display_h);
-		float aspectRatio = static_cast<float>(display_w) / static_cast<float>(display_h);
-
-		auto drawList = ImGui::GetForegroundDrawList();
-		float coeffScreenX = (static_cast<float>(coefficients[0][0]) / aspectRatio + 1.0f) * display_w / 2.0f;
-		float coeffScreenY = (1.0f - static_cast<float>(coefficients[0][1])) * display_h / 2.0f;
-
-		char coeffLabel[64];
-		snprintf(coeffLabel, sizeof(coeffLabel), "C0 = (%.2f, %.2f)", coefficients[0][0], coefficients[0][1]);
-		drawList->AddText(ImVec2(coeffScreenX + 10.0f, coeffScreenY - 10.0f), IM_COL32(100, 255, 100, 255), coeffLabel);
-
-		// Draw C1 vector label
-		float c1EndX = static_cast<float>(coefficients[0][0] + coefficients[1][0]);
-		float c1EndY = static_cast<float>(coefficients[0][1] + coefficients[1][1]);
-		float c1ScreenX = (c1EndX / aspectRatio + 1.0f) * display_w / 2.0f;
-		float c1ScreenY = (1.0f - c1EndY) * display_h / 2.0f;
-
-		char c1Label[64];
-		snprintf(c1Label, sizeof(c1Label), "C1 = (%.2f, %.2f)", coefficients[1][0], coefficients[1][1]);
-		drawList->AddText(ImVec2(c1ScreenX + 10.0f, c1ScreenY - 10.0f), IM_COL32(255, 255, 100, 255), c1Label);
-
-		// Draw C2 vector label
-		float c2EndX = static_cast<float>(coefficients[0][0] + coefficients[2][0]);
-		float c2EndY = static_cast<float>(coefficients[0][1] + coefficients[2][1]);
-		float c2ScreenX = (c2EndX / aspectRatio + 1.0f) * display_w / 2.0f;
-		float c2ScreenY = (1.0f - c2EndY) * display_h / 2.0f;
-
-		char c2Label[64];
-		snprintf(c2Label, sizeof(c2Label), "C2 = (%.2f, %.2f)", coefficients[2][0], coefficients[2][1]);
-		drawList->AddText(ImVec2(c2ScreenX + 10.0f, c2ScreenY - 10.0f), IM_COL32(100, 200, 255, 255), c2Label);
-
-		// Rendering
-		ImGui::Render();
-		glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        glUseProgram(shaderProgram);
-        glUniform1f(aspectRatioLoc, aspectRatio);
-
-        // Draw the curve path
-        if (showPath) {
-            glUniform3f(colorLoc, 0.5f, 0.5f, 0.8f);
-            glBindVertexArray(pathVAO);
-            glDrawArrays(GL_LINE_STRIP, 0, 200);
-            glBindVertexArray(0);
-        }
-
-        // Draw the coefficient point C0
-        glUniform3f(colorLoc, 0.2f, 1.0f, 0.2f);
-        glBindVertexArray(coeffVAO);
-        glDrawArrays(GL_TRIANGLE_FAN, 0, circleSegments + 2);
-        glBindVertexArray(0);
-
-        // Draw the C1 vector
-        glUniform3f(colorLoc, 1.0f, 1.0f, 0.0f);
-        glBindVertexArray(c1VAO);
-        glLineWidth(2.0f);
-        glDrawArrays(GL_LINE_STRIP, 0, 2);
-        glLineWidth(1.0f);
-        glBindVertexArray(0);
-
-        // Draw the C2 vector
-        glUniform3f(colorLoc, 0.4f, 0.78f, 1.0f);
-        glBindVertexArray(c2VAO);
-        glLineWidth(2.0f);
-        glDrawArrays(GL_LINE_STRIP, 0, 2);
-        glLineWidth(1.0f);
-        glBindVertexArray(0);
-
-        // Draw the C1 arrowhead
-        glUniform3f(colorLoc, 1.0f, 1.0f, 0.0f);
-        glBindVertexArray(c1ArrowVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        glBindVertexArray(0);
-
-        // Draw the C2 arrowhead
-        glUniform3f(colorLoc, 0.4f, 0.78f, 1.0f);
-        glBindVertexArray(c2ArrowVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        glBindVertexArray(0);
-
-        // Draw the animated circle
-        glUniform3f(colorLoc, 1.0f, 0.5f, 0.2f);
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLE_FAN, 0, circleSegments + 2);
-        glBindVertexArray(0);
-
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        glfwSwapBuffers(window);
+		// Swap front and back buffers (display the rendered image).
+        glfwSwapBuffers(pWin);
     }
 
-    // Cleanup
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteVertexArrays(1, &pathVAO);
-    glDeleteBuffers(1, &pathVBO);
-    glDeleteVertexArrays(1, &coeffVAO);
-    glDeleteBuffers(1, &coeffVBO);
-    glDeleteVertexArrays(1, &c1VAO);
-    glDeleteBuffers(1, &c1VBO);
-    glDeleteVertexArrays(1, &c2VAO);
-    glDeleteBuffers(1, &c2VBO);
-    glDeleteVertexArrays(1, &c1ArrowVAO);
-    glDeleteBuffers(1, &c1ArrowVBO);
-    glDeleteVertexArrays(1, &c2ArrowVAO);
-    glDeleteBuffers(1, &c2ArrowVBO);
-    glDeleteProgram(shaderProgram);
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-    glfwDestroyWindow(window);
-    glfwTerminate();
-
+    Shutdown(app);
     return 0;
 }
-
-

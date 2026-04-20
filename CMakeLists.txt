@@ -43,6 +43,15 @@ endif()
 # Demos
 if(MiltNURBS_BUILD_DEMOS)
     include(FetchContent)
+
+    # Fetch EnTT
+    FetchContent_Declare(
+        EnTT
+        GIT_REPOSITORY https://github.com/skypjack/entt.git
+        GIT_TAG v3.16.0
+    )
+
+    FetchContent_MakeAvailable(EnTT)
         
     # Fetch GLFW
     FetchContent_Declare(

@@ -8,4 +8,5 @@ target_link_libraries(horner1 PRIVATE
 	glfw
 	gl3w
 	OpenGL::GL
+	EnTT::EnTT
 )
