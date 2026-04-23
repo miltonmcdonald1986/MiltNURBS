@@ -1,41 +1,124 @@
-# MiltNURBS Project Documentation
+# MiltLibs
+
+A modern C++23 library collection featuring graphics and NURBS (Non-Uniform Rational B-Splines) support.
 
 ## Overview
-MiltNURBS is a project aimed at providing tools and libraries for Non-Uniform Rational B-Splines (NURBS). NURBS are mathematical representations that can accurately model any shape from a simple 2D line, to complex 3D surfaces. This project serves both educational purposes and practical applications in computer graphics.
+
+MiltLibs is a comprehensive C++ library suite designed to provide tools for graphics rendering and advanced mathematical modeling with NURBS. The project demonstrates best practices in modern C++ with clean modular architecture.
 
 ## Features
-- Easy to use API for creating NURBS curves and surfaces.
-- Visualization tools for displaying generated NURBS.
-- Comprehensive examples and tutorials to help users get started.
 
-## Installation
-To install MiltNURBS, clone the repository and include the library in your project:
-```bash
-git clone https://github.com/miltonmcdonald1986/MiltNURBS.git
+- **NURBS Library**: Mathematical tools for Non-Uniform Rational B-Splines (NURBS) for accurate shape modeling
+- **Graphics Library**: Graphics utilities built on OpenGL, ImGui, and GLFW
+- **Modern C++23**: Leverages the latest C++ standard features
+- **CMake Build System**: Easy to configure and integrate into other projects
+- **Comprehensive Testing**: Google Test framework for unit testing
+- **Interactive Demos**: Example applications showcasing library capabilities (e.g., Horner's algorithm demo)
+
+## Project Structure
+
+```
+MiltLibs/
+├── libs/
+│   ├── graphics/        # Graphics utilities and rendering
+│   └── nurbs/          # NURBS mathematical library
+├── demos/              # Example applications
+│   └── horner1/        # Horner's algorithm demonstration
+├── tests/              # Unit tests
+├── CMakeLists.txt      # Build configuration
+└── README.md
 ```
 
-## Getting Started
-Here is a quick example of how to create a simple NURBS curve:
-```python
-from miltnurbs import NURBSCurve
+## Requirements
 
-# Define control points
-control_points = [[0, 0], [1, 2], [2, 0]]
-# Create NURBS curve
-curve = NURBSCurve(control_points)
+- **C++23 compatible compiler** (GCC 13+, Clang 16+, or MSVC 2022+)
+- **CMake 3.25+**
+- **OpenGL** (system-dependent)
+
+### Dependencies (automatically fetched via CMake)
+
+- [EnTT v3.16.0](https://github.com/skypjack/entt) - Entity Component System
+- [GLFW 3.4](https://github.com/glfw/glfw) - Window and input handling
+- [ImGui v1.90.4](https://github.com/ocornut/imgui) - UI framework
+- [gl3w](https://github.com/skaslev/gl3w) - OpenGL loader
+- [stb](https://github.com/nothings/stb) - Image loading utilities
+- [Google Test v1.14.0](https://github.com/google/googletest) - Testing framework
+
+## Getting Started
+
+### Building
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/miltonmcdonald1986/MiltLibs.git
+   cd MiltLibs
+   ```
+
+2. **Create a build directory:**
+   ```bash
+   mkdir build
+   cd build
+   ```
+
+3. **Configure and build:**
+   ```bash
+   cmake ..
+   cmake --build . --config Release
+   ```
+
+### Build Options
+
+Configure the build with these CMake options:
+
+```bash
+cmake -DMiltLibs_BUILD_TESTS=ON -DMiltLibs_BUILD_DEMOS=ON ..
+```
+
+- `MiltLibs_BUILD_TESTS` (default: ON) - Build unit tests
+- `MiltLibs_BUILD_DEMOS` (default: ON) - Build demo applications
+
+### Running Tests
+
+After building:
+```bash
+ctest
 ```
 
 ## Usage
-For detailed usage, refer to the [documentation](link-to-docs).
+
+### Using the NURBS Library
+
+```cpp
+#include <milt/nurbs/nurbs.h>
+
+// NURBS functionality available through the nurbs library
+```
+
+### Running Demos
+
+After building, run the Horner's algorithm demo:
+```bash
+./demos/horner1/horner1
+```
 
 ## Contributing
-To contribute to MiltNURBS, please fork the repository and submit a pull request. We welcome contributions from the community!
+
+Contributions are welcome! To contribute:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE](link-to-license) file for details.
 
-## Contact
-For more information, feel free to reach out at milton.mcdonald@example.com
+This project is open source. See the LICENSE file for details.
 
-## Acknowledgements
-Thanks to all the contributors and the open-source community for their valuable input.
+## Author
+
+**Milton McDonald** - [GitHub Profile](https://github.com/miltonmcdonald1986)
+
+## Support
+
+For issues, questions, or suggestions, please open an issue on the [GitHub repository](https://github.com/miltonmcdonald1986/MiltLibs/issues).
