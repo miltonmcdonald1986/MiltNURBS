@@ -1,4 +1,4 @@
-#include <graphics/shader_factory.h>
+#include <graphics/factories/shader_factories.h>
 
 #include <format>
 #include <fstream>
@@ -75,7 +75,7 @@ namespace
 
 }
 
-namespace graphics::shader_factory
+namespace graphics::factories::shader_factories
 {
 
 	std::expected<GLuint, std::string> create_basic_shader()

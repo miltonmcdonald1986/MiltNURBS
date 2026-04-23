@@ -1,5 +1,5 @@
-#ifndef GRAPHICS_SHADER_FACTORY_H
-#define GRAPHICS_SHADER_FACTORY_H
+#ifndef GRAPHICS_FACTORIES_SHADER_FACTOIES_H
+#define GRAPHICS_FACTORIES_SHADER_FACTOIES_H
 
 #include <expected>
 #include <filesystem>
@@ -7,7 +7,7 @@
 
 #include <GL/gl3w.h>
 
-namespace graphics::shader_factory
+namespace graphics::factories::shader_factories
 {
 
 	/// <summary>
@@ -91,4 +91,4 @@ namespace graphics::shader_factory
 
 }
 
-#endif // GRAPHICS_SHADER_FACTORY_H
+#endif // GRAPHICS_FACTORIES_SHADER_FACTOIES_H

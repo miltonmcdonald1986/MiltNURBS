@@ -58,6 +58,22 @@ namespace graphics::mesh::mesh_factory_backend
         return mesh;
     }
 
+    std::expected<MeshGL, std::string> create_indexed_mesh_gl_pos_only(std::span<const float> vertices, std::span<const unsigned int> indices, GLint componentsPerVertex, GLenum primitive)
+    {
+        using namespace graphics::mesh::vertex_layout;
+
+        VertexLayout layout{};
+        layout.stride = componentsPerVertex * sizeof(float);
+
+        layout.attributes.push_back({
+            .index = 0,
+            .components = componentsPerVertex,
+            .offset = 0
+            });
+
+        return create_indexed_mesh_gl_layout(vertices, indices, layout, primitive);
+    }
+
     std::expected<graphics::components::mesh_gl::MeshGL, std::string> graphics::mesh::mesh_factory_backend::create_mesh_gl_layout(std::span<const float> vertices, const graphics::mesh::vertex_layout::VertexLayout& layout, GLenum primitive)
     {
         MeshGL mesh{};
@@ -107,46 +123,19 @@ namespace graphics::mesh::mesh_factory_backend
         return mesh;
     }
 
-	std::expected<MeshGL, std::string> create_mesh_gl_pos_only(std::span<const float> vertices, GLint componentsPerVertex, GLenum primitive)
-	{
-        MeshGL mesh{};
-        mesh.primitive = primitive;
+    std::expected<MeshGL, std::string> create_mesh_gl_pos_only(std::span<const float> vertices, GLint componentsPerVertex, GLenum primitive)
+    {
+        using namespace graphics::mesh::vertex_layout;
 
-        // Compute vertex count
-        if (vertices.size() % componentsPerVertex != 0)
-            return std::unexpected("Vertex data size does not match attribute layout");
+        VertexLayout layout{};
+        layout.stride = componentsPerVertex * sizeof(float);
+        layout.attributes.push_back({
+            .index = 0,
+            .components = componentsPerVertex,
+            .offset = 0
+            });
 
-        mesh.vertexCount = static_cast<GLsizei>(vertices.size() / componentsPerVertex);
-
-        // --- VAO ---
-        glGenVertexArrays(1, &mesh.vao);
-        glBindVertexArray(mesh.vao);
-
-        // --- VBO ---
-        glGenBuffers(1, &mesh.vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
-        glBufferData(GL_ARRAY_BUFFER,
-            vertices.size() * sizeof(float),
-            vertices.data(),
-            GL_STATIC_DRAW);
-
-        // --- Vertex Attribute ---
-        glVertexAttribPointer(
-            0,                          // location
-            componentsPerVertex,        // vec2, vec3, vec4
-            GL_FLOAT,
-            GL_FALSE,
-            componentsPerVertex * sizeof(float),
-            (void*)0
-        );
-        glEnableVertexAttribArray(0);
-
-        glBindVertexArray(0);
-
-        if (glGetError() != GL_NO_ERROR)
-            return std::unexpected("Failed to create MeshGL");
-
-        return mesh;
-	}
+        return create_mesh_gl_layout(vertices, layout, primitive);
+    }
 
 } // namespace graphics::mesh::mesh_factory_backend

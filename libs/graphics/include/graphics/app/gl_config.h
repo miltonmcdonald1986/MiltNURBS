@@ -1,9 +1,9 @@
-#ifndef GRAPHICS_GL_CONFIG_H
-#define GRAPHICS_GL_CONFIG_H
+#ifndef GRAPHICS_APP_GL_CONFIG_H
+#define GRAPHICS_APP_GL_CONFIG_H
 
 #include <GLFW/glfw3.h>
 
-namespace graphics::gl_config
+namespace graphics::app::gl_config
 {
 
     struct GLConfig
@@ -15,4 +15,4 @@ namespace graphics::gl_config
 
 }
 
-#endif // GRAPHICS_GL_CONFIG_H
+#endif // GRAPHICS_APP_GL_CONFIG_H

@@ -5,15 +5,33 @@
 #include <imgui_impl_opengl3.h>
 
 #include <graphics/platform/glfw_callbacks.h>
+#include <graphics/ui/imgui_layer.h>
 
 using graphics::app::app::App;
 using graphics::platform::glfw_callbacks::glfw_error_callback;
 using graphics::platform::glfw_callbacks::glfw_framebuffer_size_callback;
+using graphics::ui::imgui_layer::init_imgui;
 
 namespace graphics::app::lifecycle
 {
 
-    std::expected<void, std::string> InitGLContext(App& app)
+    std::expected<void, std::string> init_engine(App& app)
+    {
+        if (auto result = init_platform(app); !result)
+            return std::unexpected(std::format("Failed to initialize GLFW: {}", result.error()));
+
+        if (auto result = init_gl_context(app); !result)
+            return std::unexpected(std::format("Failed to initialize OpenGL context: {}", result.error()));
+
+        init_imgui(app);
+
+        if (auto result = init_gl_state(app); !result)
+            return std::unexpected(std::format("Failed to initialize OpenGL state: {}", result.error()));
+
+		return {};
+    }
+
+    std::expected<void, std::string> init_gl_context(App& app)
     {
         // Make the OpenGL context of our window current on the calling thread.
         glfwMakeContextCurrent(app.winState.pHandle);
@@ -28,7 +46,7 @@ namespace graphics::app::lifecycle
         return {};
     }
 
-    std::expected<void, std::string> InitGLState(App& app)
+    std::expected<void, std::string> init_gl_state(App& app)
     {
         int w, h;
         glfwGetFramebufferSize(app.winState.pHandle, &w, &h);
@@ -52,7 +70,7 @@ namespace graphics::app::lifecycle
         return {};
     }
 
-    std::expected<void, std::string> InitPlatform(App& app)
+    std::expected<void, std::string> init_platform(App& app)
     {
         glfwSetErrorCallback(glfw_error_callback);
 
@@ -82,7 +100,7 @@ namespace graphics::app::lifecycle
         return {};
     }
 
-    void Shutdown(App& app)
+    void shutdown(App& app)
     {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
@@ -91,6 +109,18 @@ namespace graphics::app::lifecycle
         glfwDestroyWindow(app.winState.pHandle);
         app.winState.pHandle = nullptr;
         glfwTerminate();
+    }
+
+    void update_delta_time(App& app)
+    {
+        double now = glfwGetTime();
+
+        if (app.last_time == 0.)
+            app.delta_time = 0.;
+        else
+            app.delta_time = now - app.last_time;
+
+        app.last_time = now;
     }
 
 }

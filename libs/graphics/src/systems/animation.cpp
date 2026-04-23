@@ -1,4 +1,4 @@
-#include <graphics/animation_systems.h>
+#include <graphics/systems/animation.h>
 
 #include <graphics/components/color.h>
 #include <graphics/components/flash.h>
@@ -6,7 +6,7 @@
 using graphics::components::color::Color;
 using graphics::components::flash::Flash;
 
-namespace graphics::animation_systems
+namespace graphics::systems::animation
 {
 
     void update_flash(entt::registry& reg, double dt)
@@ -25,4 +25,4 @@ namespace graphics::animation_systems
         }
     }
 
-} // namespace graphics::animation_systems
+} // namespace graphics::systems::animation

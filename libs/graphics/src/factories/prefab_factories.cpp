@@ -2,15 +2,15 @@
 
 #include <graphics/components/shader.h>
 #include <graphics/factories/mesh_factories.h>
-#include <graphics/shader_factory.h>
+#include <graphics/factories/shader_factories.h>
 
 using graphics::components::color::Color;
 using graphics::components::mesh_gl::MeshGL;
 using graphics::components::shader::Shader;
 using graphics::factories::mesh_factories::create_triangle_mesh;
 using graphics::factories::mesh_factories::create_rainbow_triangle_mesh;
-using graphics::shader_factory::create_color_shader;
-using graphics::shader_factory::create_vertex_color_shader;
+using graphics::factories::shader_factories::create_color_shader;
+using graphics::factories::shader_factories::create_vertex_color_shader;
 
 namespace graphics::factories::prefab_factories
 {

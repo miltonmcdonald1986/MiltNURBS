@@ -7,22 +7,23 @@
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
 
-#include <graphics/gl_config.h>
-#include <graphics/gl_state.h>
-#include <graphics/window_config.h>
-#include <graphics/window_state.h>
+#include <graphics/app/gl_config.h>
+#include <graphics/app/window_config.h>
+#include <graphics/platform/window_state.h>
+#include <graphics/systems/gl_state.h>
 
 namespace graphics::app::app
 {
 
 	struct App
 	{
-		double									delta_time{ 0. };
-		entt::registry							reg{};
-		graphics::gl_config::GLConfig			glConfig{};
-		graphics::gl_state::GLState				glState{};
-		graphics::window_config::WindowConfig	winConfig{};
-		graphics::window_state::WindowState		winState{};
+		double											delta_time{ 0. };
+		double											last_time{ 0. };	
+		entt::registry									reg{};
+		graphics::app::gl_config::GLConfig				glConfig{};
+		graphics::systems::gl_state::GLState			glState{};
+		graphics::app::window_config::WindowConfig		winConfig{};
+		graphics::platform::window_state::WindowState	winState{};
 	};
 
 }

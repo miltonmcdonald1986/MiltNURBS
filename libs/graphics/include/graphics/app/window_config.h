@@ -1,9 +1,9 @@
-#ifndef GRAPHICS_WINDOW_CONFIG_H
-#define GRAPHICS_WINDOW_CONFIG_H
+#ifndef GRAPHICS_APP_WINDOW_CONFIG_H
+#define GRAPHICS_APP_WINDOW_CONFIG_H
 
 #include <GLFW/glfw3.h>
 
-namespace graphics::window_config
+namespace graphics::app::window_config
 {
 	
     struct WindowConfig
@@ -15,4 +15,4 @@ namespace graphics::window_config
 
 }
 
-#endif // GRAPHICS_WINDOW_CONFIG_H
+#endif // GRAPHICS_APP_WINDOW_CONFIG_H

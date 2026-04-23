@@ -2,7 +2,7 @@
 
 #include <graphics/app/lifecycle.h>
 
-using graphics::app::lifecycle::Shutdown;
+using graphics::app::lifecycle::shutdown;
 
 namespace graphics::app::app_guard
 {
@@ -14,7 +14,7 @@ namespace graphics::app::app_guard
 
 	AppGuard::~AppGuard()
 	{
-		Shutdown(app);
+		shutdown(app);
 	}
 
 }
