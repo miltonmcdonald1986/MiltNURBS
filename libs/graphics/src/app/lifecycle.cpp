@@ -5,12 +5,16 @@
 #include <imgui_impl_opengl3.h>
 
 #include <graphics/platform/glfw_callbacks.h>
+#include <graphics/systems/ecs_observers.h>
 #include <graphics/ui/imgui_layer.h>
+#include <graphics/ui/inspector.h>
 
 using graphics::app::app::App;
 using graphics::platform::glfw_callbacks::glfw_error_callback;
 using graphics::platform::glfw_callbacks::glfw_framebuffer_size_callback;
+using graphics::systems::ecs_observers::register_transform_observers;
 using graphics::ui::imgui_layer::init_imgui;
+using graphics::ui::inspector::register_inspectors;
 
 namespace graphics::app::lifecycle
 {
@@ -27,6 +31,9 @@ namespace graphics::app::lifecycle
 
         if (auto result = init_gl_state(app); !result)
             return std::unexpected(std::format("Failed to initialize OpenGL state: {}", result.error()));
+
+        register_inspectors();
+        register_transform_observers(app);
 
 		return {};
     }

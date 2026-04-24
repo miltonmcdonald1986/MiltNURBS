@@ -20,6 +20,16 @@ namespace graphics::ui::imgui_layer
     {
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        // ⭐ Viewport support
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            GLFWwindow* backup = glfwGetCurrentContext();
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+            glfwMakeContextCurrent(backup);
+        }
     }
 
     void init_imgui(App& app)
@@ -29,11 +39,22 @@ namespace graphics::ui::imgui_layer
 
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // ⭐ enable docking
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;   // ⭐ enable multi-window
 
         ImGui::StyleColorsDark();
+
+        // When viewports are enabled, tweak style so windows look consistent
+        ImGuiStyle& style = ImGui::GetStyle();
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            style.WindowRounding = 0.0f;
+            style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+        }
 
         ImGui_ImplGlfw_InitForOpenGL(app.winState.pHandle, true);
         ImGui_ImplOpenGL3_Init("#version 330 core");
     }
+
 
 } // namespace graphics::ui::imgui_layer

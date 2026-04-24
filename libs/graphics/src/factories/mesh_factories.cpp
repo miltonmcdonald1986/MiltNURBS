@@ -42,6 +42,48 @@ namespace graphics::factories::mesh_factories
 		return *meshResult;
 	}
 
+    std::expected<MeshGL, std::string> create_textured_quad_mesh()
+    {
+        // Interleaved vertex data: position (3 floats) + uv (2 floats)
+        const float vertices[] =
+        {
+            //   x      y     z      u     v
+            -0.5f, -0.5f, 0.f,   0.f, 0.f, // bottom-left
+             0.5f, -0.5f, 0.f,   1.f, 0.f, // bottom-right
+             0.5f,  0.5f, 0.f,   1.f, 1.f, // top-right
+            -0.5f,  0.5f, 0.f,   0.f, 1.f  // top-left
+        };
+
+        const unsigned int indices[] =
+        {
+            0, 1, 2,
+            2, 3, 0
+        };
+
+        // Vertex layout: vec3 position + vec2 uv
+        VertexLayout layout;
+        layout.stride = sizeof(float) * 5;
+
+        layout.attributes.push_back({
+            /* index      */ 0,
+            /* components */ 3,
+            /* offset     */ 0
+            });
+
+        layout.attributes.push_back({
+            /* index      */ 1,
+            /* components */ 2,
+            /* offset     */ sizeof(float) * 3
+            });
+
+        return create_indexed_mesh_gl_layout(
+            std::span<const float>(vertices, std::size(vertices)),
+            std::span<const unsigned int>(indices, std::size(indices)),
+            layout,
+            GL_TRIANGLES
+        );
+    }
+
     std::expected<MeshGL, std::string> create_textured_triangle_mesh()
     {
         // Position + UV layout: 3 floats pos, 2 floats uv

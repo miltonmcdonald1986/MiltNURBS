@@ -33,6 +33,26 @@ namespace graphics::factories::mesh_factories
 	std::expected<components::mesh_gl::MeshGL, std::string> create_rainbow_triangle_mesh();
 
 	/// <summary>
+	/// Creates a textured quad mesh using position + UV vertex data.
+	///
+	/// The quad is centered at the origin in the XY plane, with a size of 1x1.
+	/// Vertex layout:
+	///   layout(location = 0): vec3 position
+	///   layout(location = 1): vec2 uv
+	///
+	/// The mesh uses indexed geometry (6 indices forming two triangles):
+	///   (0,1,2) and (2,3,0)
+	///
+	/// Suitable for sprites, UI panels, billboards, or any textured geometry
+	/// requiring position + UV attributes.
+	/// </summary>
+	/// <returns>
+	/// On success, contains a MeshGL with VAO, VBO, EBO, and index count.
+	/// On failure, contains a descriptive error message.
+	/// </returns>
+	std::expected<components::mesh_gl::MeshGL, std::string> create_textured_quad_mesh();
+
+	/// <summary>
 	/// Creates a MeshGL representing a triangle with position and UV attributes,
 	/// suitable for rendering with a texture-sampling shader.
 	///

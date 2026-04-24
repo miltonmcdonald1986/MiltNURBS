@@ -9,6 +9,8 @@ namespace graphics::ui::widgets
 	void draw_flash_widget(app::app::App& app);
 	void draw_per_entity_color_widget(app::app::App& app);
 	void draw_render_settings_widget(app::app::App& app);
+	void draw_shake_widget(app::app::App& app);
+	void draw_shake_once_widget(app::app::App& app);
 
 }
 

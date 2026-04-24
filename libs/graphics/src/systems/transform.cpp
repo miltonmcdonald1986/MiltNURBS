@@ -2,7 +2,10 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <graphics/systems/animation.h>
+
 using graphics::components::transform::Transform;
+using graphics::systems::animation::update_shake_base_position;
 
 namespace graphics::systems::transform
 {
@@ -20,6 +23,22 @@ namespace graphics::systems::transform
         m = glm::scale(m, t.scale);
 
         return m;
+    }
+
+    void update_transform_dependents(entt::registry& reg)
+    {
+        auto view = reg.view<Transform>();
+
+        for (auto [e, t] : view.each())
+        {
+            if (!t.dirty)
+                continue;
+
+            update_shake_base_position(reg, e, t.position);
+
+            // Clear dirty LAST
+            t.dirty = false;
+        }
     }
 
 }

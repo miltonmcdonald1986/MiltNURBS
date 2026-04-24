@@ -51,6 +51,38 @@ namespace graphics::factories::shader_factories
 	std::expected<GLuint, std::string> create_shader_from_files(const std::filesystem::path& vertex_path, const std::filesystem::path& fragment_path);
 
 	/// <summary>
+	/// Creates a textured shader program with full Model‑View‑Projection (MVP)
+	/// support and per‑fragment color tinting.
+	///
+	/// The shader expects the following vertex attributes:
+	///   layout(location = 0): vec3 position
+	///   layout(location = 1): vec2 uv
+	///
+	/// The vertex shader applies three transformation matrices:
+	///   - <c>uModel</c>:       transforms object‑space vertices into world space
+	///   - <c>uView</c>:        transforms world space into camera (view) space
+	///   - <c>uProjection</c>:  applies perspective or orthographic projection
+	///
+	/// After transformation, the vertex shader forwards UV coordinates to the
+	/// fragment shader.
+	///
+	/// The fragment shader samples from a 2D texture bound to texture unit 0
+	/// and multiplies the sampled texel by a per‑entity RGBA tint provided via
+	/// the <c>u_color</c> uniform. This allows effects such as flashing,
+	/// fading, highlighting, or general color modulation on textured geometry.
+	///
+	/// This shader is suitable for rendering textured meshes that require both
+	/// world‑space positioning and color tinting, such as sprites, UI panels,
+	/// billboards, or any geometry using position + UV data with optional
+	/// per‑entity color animation.
+	/// </summary>
+	/// <returns>
+	/// On success, contains the OpenGL program ID for the linked shader.
+	/// On failure, contains a descriptive error message.
+	/// </returns>
+	std::expected<GLuint, std::string> create_textured_color_mvp_shader();
+
+	/// <summary>
 	/// Creates a textured shader program with full Model‑View‑Projection (MVP) support.
 	///
 	/// The shader expects the following vertex attributes:
