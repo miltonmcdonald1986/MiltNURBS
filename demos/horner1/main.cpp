@@ -3,6 +3,7 @@
 #include <graphics/components/color.h>
 #include <graphics/components/flash.h>
 #include <graphics/components/mesh_gl.h>
+#include <graphics/components/parent.h>
 #include <graphics/components/shader.h>
 #include <graphics/components/shake.h>
 #include <graphics/components/tags.h>
@@ -21,6 +22,7 @@ using graphics::app::app_loop::run_app;
 using graphics::components::color::Color;
 using graphics::components::flash::Flash;
 using graphics::components::mesh_gl::MeshGL;
+using graphics::components::parent::Parent;
 using graphics::components::shader::Shader;
 using graphics::components::shake::Shake;
 using graphics::components::shake::ShakeOnce;
@@ -42,70 +44,53 @@ using graphics::ui::widgets::draw_shake_once_widget;
 using graphics::ui::widgets::draw_per_entity_color_widget;
 using graphics::ui::widgets::draw_render_settings_widget;
 
+entt::entity parent;
+entt::entity child;
+
 std::expected<void, std::string> init(App& app)
 {
-    entt::entity left = app.reg.create();
-	entt::entity middle = app.reg.create();
-	entt::entity right = app.reg.create();
+    entt::registry& reg = app.reg;
 
-    // --- Mesh: textured quad ---
+    parent = reg.create();
+    child = reg.create();
+
+    Transform t{};
+    t.rotation = glm::vec3(0.f);   // start with no rotation
+    t.scale = glm::vec3(0.2f);   // shrink
+    t.position = glm::vec3(0.f, 0.f, 0.f);
+    reg.emplace<Transform>(parent, t);
+
+    t.position = glm::vec3(0.5f, 0.f, 0.f);
+    reg.emplace<Transform>(child, t);
+
     if (auto mesh_result = create_textured_quad_mesh())
     {
-        app.reg.emplace<MeshGL>(left, *mesh_result);
-		app.reg.emplace<MeshGL>(middle, *mesh_result);
-		app.reg.emplace<MeshGL>(right, *mesh_result);
+        reg.emplace<MeshGL>(parent, *mesh_result);
+        reg.emplace<MeshGL>(child, *mesh_result);
     }
     else
         return std::unexpected("Failed to create quad mesh");
 
-    // --- Texture ---
-    if (auto tex_result = create_texture_from_file(R"(C:\Users\milto\Downloads\wall.jpg)"))
-    {
-        app.reg.emplace<Texture>(left, *tex_result);
-		app.reg.emplace<Texture>(middle, *tex_result);
-		app.reg.emplace<Texture>(right, *tex_result);
-    }
-    else
-        return std::unexpected("Failed to load texture");
-
-    // --- Shader: MVP textured shader ---
     if (auto shader_result = create_textured_color_mvp_shader())
     {
-        app.reg.emplace<Shader>(left, *shader_result);
-		app.reg.emplace<Shader>(middle, *shader_result);
-		app.reg.emplace<Shader>(right, *shader_result);
+        reg.emplace<Shader>(parent, *shader_result);
+        reg.emplace<Shader>(child, *shader_result);
     }
     else
         return std::unexpected("Failed to create MVP shader");
 
-    
-    // --- Transform ---
-    Transform t{};
-    t.rotation = glm::vec3(0.f);   // start with no rotation
-    t.scale = glm::vec3(0.25f);   // full size
-    
-    t.position = glm::vec3(-0.5f, 0.f, 0.f);
-    app.reg.emplace<Transform>(left, t);
+    if (auto tex_result = create_texture_from_file(R"(C:\Users\milto\Downloads\wall.jpg)"))
+    {
+        reg.emplace<Texture>(parent, *tex_result);
+        reg.emplace<Texture>(child, *tex_result);
+    }
+    else
+        return std::unexpected("Failed to load texture");
 
-	t.position = glm::vec3(0.f, 0.f, 0.f);
-	app.reg.emplace<Transform>(middle, t);
+    reg.emplace<Shakeable>(parent);
+    reg.emplace<Shakeable>(child);
 
-	t.position = glm::vec3(0.5f, 0.f, 0.f);
-	app.reg.emplace<Transform>(right, t);
-
-    // --- Color (required for flashing) ---
-    Color c(1.f, 1.f, 1.f, 1.f);
-    app.reg.emplace<Color>(left, c);
-    app.reg.emplace<Color>(middle, c);
-    app.reg.emplace<Color>(right, c);
-
-    app.reg.emplace<Shakeable>(middle);
-    app.reg.emplace<Shakeable>(right);
-
-    app.reg.emplace<Shake>(middle, Shake{});
-
-    //// --- Flash (animates the color tint) ---
-    app.reg.emplace<Flash>(left, Flash{});
+    reg.emplace<Parent>(child, parent);
 
     return {};
 }
@@ -115,6 +100,13 @@ std::expected<void, std::string> update(App& app)
     // Optional UI
     draw_entity_list(app);
     draw_inspector(app);
+
+    auto& tParent = app.reg.get<Transform>(parent);
+    tParent.rotation.z += 0.8f * static_cast<float>(app.delta_time);   // parent spin
+    tParent.dirty = true;
+
+    auto& tChild = app.reg.get<Transform>(child);
+    OutputDebugStringA(std::format("child dirty = {}\n", tChild.dirty).c_str());
 
     return {};
 }

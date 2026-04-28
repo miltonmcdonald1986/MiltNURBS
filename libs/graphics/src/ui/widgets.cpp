@@ -109,7 +109,7 @@ namespace graphics::ui::widgets
                 s.time_left = duration;
                 s.intensity = intensity;
                 s.speed = speed;
-                s.base_position = tform.position;
+                //s.base_position = tform.position;
 
                 app.reg.emplace_or_replace<ShakeOnce>(entity, s);
             }

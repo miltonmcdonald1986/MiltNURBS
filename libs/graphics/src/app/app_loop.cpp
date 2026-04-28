@@ -23,6 +23,7 @@ using graphics::systems::animation::update_shake_once;
 using graphics::systems::color::update_color_no_flash;
 using graphics::systems::render::render_system_update;
 using graphics::systems::transform::update_transform_dependents;
+using graphics::systems::transform::update_transform_system;
 using graphics::ui::imgui_layer::begin_imgui_frame;
 using graphics::ui::imgui_layer::end_imgui_frame;
 
@@ -66,7 +67,7 @@ namespace graphics::app::app_loop
                 std::print("Update error: {}\n", result.error());
 
             // ENGINE SYSTEMS (authoritative)
-            update_transform_dependents(app.reg);
+            update_transform_system(app.reg);
 
 			// ENGINE SYSTEMS (run-time effects)
             update_color_no_flash(app.reg);

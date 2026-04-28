@@ -8,6 +8,7 @@
 #include <graphics/components/shader.h>
 #include <graphics/components/texture.h>
 #include <graphics/components/transform.h>
+#include <graphics/components/world_matrix.h>
 #include <graphics/systems/transform.h>
 
 using graphics::app::app::App;
@@ -16,6 +17,7 @@ using graphics::components::mesh_gl::MeshGL;
 using graphics::components::shader::Shader;
 using graphics::components::texture::Texture;
 using graphics::components::transform::Transform;
+using graphics::components::world_matrix::WorldMatrix;
 using graphics::systems::transform::compute_model_matrix;
 
 namespace graphics::systems::render
@@ -59,18 +61,20 @@ namespace graphics::systems::render
                 GLint loc = glGetUniformLocation(shader.id, "uTexture");
                 if (loc >= 0)
                     glUniform1i(loc, 0); // texture unit 0
-            }
 
-            // --- Transform (Model matrix) ---
-            glm::mat4 model = glm::mat4(1.0f);
-            if (auto t = app.reg.try_get<Transform>(entity))
-            {
-                model = compute_model_matrix(*t);
+                // If no color component, the texture will render black unless we set the uniform ourselves here:
+                if (!app.reg.any_of<Color>(entity))
+                {
+                    float white[4] = { 1.f, 1.f, 1.f, 1.f };
+                    loc = glGetUniformLocation(shader.id, "u_color");
+                    if (loc >= 0)
+                        glUniform4fv(loc, 1, white);
+                }
             }
 
             // Upload uModel
             if (GLint loc = glGetUniformLocation(shader.id, "uModel"); loc >= 0)
-                glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(model));
+                glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(app.reg.get<WorldMatrix>(entity).value));
 
             // Upload identity uView
             if (GLint loc = glGetUniformLocation(shader.id, "uView"); loc >= 0)

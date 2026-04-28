@@ -79,7 +79,6 @@ namespace
             ImGui::Text("Shake Parameters");
             ImGui::Separator();
 
-            // These values feed into whichever shake mode is active
             float intensity = shake ? shake->intensity :
                 shakeOnce ? shakeOnce->intensity :
                 0.05f;
@@ -107,16 +106,29 @@ namespace
             // ============================================================
             if (shake)
             {
+                ImGui::Separator();
+                ImGui::Text("Base World (anchor)");
+
+                // Extract translation from base_world
+                glm::vec3 bw_pos = glm::vec3(
+                    shake->base_world[3][0],
+                    shake->base_world[3][1],
+                    shake->base_world[3][2]
+                );
+
+                ImGui::Text("base_world pos: (%.3f, %.3f, %.3f)",
+                    bw_pos.x, bw_pos.y, bw_pos.z);
+
+                ImGui::Separator();
+
                 ImGui::Text("Continuous Shake");
                 ImGui::Separator();
                 ImGui::PushID("shake");
 
                 if (ImGui::Button("Remove Continuous Shake"))
                 {
-                    // Snap back to base
-                    transform.position = shake->base_position;
+                    // Snap back to base (TransformSystem will recompute world)
                     transform.dirty = true;
-
                     reg.remove<Shake>(e);
                 }
 
@@ -132,7 +144,6 @@ namespace
                 if (ImGui::Button("Add Continuous Shake"))
                 {
                     auto& s = reg.emplace<Shake>(e);
-                    s.base_position = transform.position;
                     s.intensity = intensity;
                     s.speed = speed;
                 }
@@ -148,14 +159,11 @@ namespace
 
             if (shakeOnce)
             {
-                // Duration is unique to ShakeOnce
                 ImGui::SliderFloat("Duration", &shakeOnce->duration, 0.01f, 1.0f, "%.3f");
 
                 if (ImGui::Button("Cancel Shake Once"))
                 {
-                    transform.position = shakeOnce->base_position;
                     transform.dirty = true;
-
                     reg.remove<ShakeOnce>(e);
                 }
             }
@@ -172,7 +180,6 @@ namespace
                     s.duration = onceDuration;
                     s.time_left = onceDuration;
                     s.speed = speed;
-                    s.base_position = transform.position;
                 }
             }
 
@@ -194,19 +201,41 @@ namespace
 
         if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            // -------------------------
+            // ============================================================
             // Position
-            // -------------------------
+            // ============================================================
             ImGui::Text("Position");
             ImGui::SameLine(120);
             ImGui::PushID("pos");
 
-            Shake* shake = reg.try_get<Shake>(e);
-            ShakeOnce* shake_once = reg.try_get<ShakeOnce>(e);
-            auto displayPos = shake ? shake->base_position : shake_once ? shake_once->base_position : transform->position;
+            // Determine what to display
+            glm::vec3 displayPos;
+
+            if (auto* shake = reg.try_get<Shake>(e))
+            {
+                displayPos = glm::vec3(
+                    shake->base_world[3][0],
+                    shake->base_world[3][1],
+                    shake->base_world[3][2]
+                );
+            }
+            else if (auto* shakeOnce = reg.try_get<ShakeOnce>(e))
+            {
+                displayPos = glm::vec3(
+                    shakeOnce->base_world[3][0],
+                    shakeOnce->base_world[3][1],
+                    shakeOnce->base_world[3][2]
+                );
+            }
+            else
+            {
+                displayPos = transform->position;
+            }
+
+            // Editable field
             if (ImGui::InputFloat3("##pos", &displayPos.x, "%.3f"))
             {
-                transform->position = displayPos; // write back only on edit
+                transform->position = displayPos;
                 transform->dirty = true;
             }
 
@@ -219,9 +248,9 @@ namespace
 
             ImGui::PopID();
 
-            // -------------------------
+            // ============================================================
             // Rotation (degrees UI, radians internal)
-            // -------------------------
+            // ============================================================
             glm::vec3 rotDeg = glm::degrees(transform->rotation);
 
             ImGui::Text("Rotation");
@@ -243,9 +272,9 @@ namespace
 
             ImGui::PopID();
 
-            // -------------------------
+            // ============================================================
             // Scale
-            // -------------------------
+            // ============================================================
             ImGui::Text("Scale");
             ImGui::SameLine(120);
             ImGui::PushID("scale");
