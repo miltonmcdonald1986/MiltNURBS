@@ -57,17 +57,17 @@ std::expected<void, std::string> init(App& app)
     child2 = reg.create();
 
     Transform t{};
-    t.rotation = glm::vec3(0.f);   // start with no rotation
-    t.scale = glm::vec3(0.2f);   // shrink
-    t.position = glm::vec3(0.f, 0.f, 0.f);
+    t.set_rotation(glm::vec3(0.f));
+    t.set_scale(glm::vec3(0.2f));
+    t.set_position(glm::vec3(0.f, 0.f, 0.f));
     reg.emplace<Transform>(parent, t);
 
-    t.position = glm::vec3(0.75f, 0.f, 0.f);
-    t.scale = glm::vec3(0.1f);   // shrink
+    t.set_position(glm::vec3(0.75f, 0.f, 0.f));
+    t.set_scale(glm::vec3(0.1f));
     reg.emplace<Transform>(child1, t);
 
-    t.position = glm::vec3(0.25f, 0.f, 0.f);
-    t.scale = glm::vec3(0.05f);   // shrink
+    t.set_position(glm::vec3(0.25f, 0.f, 0.f));
+    t.set_scale(glm::vec3(0.05f));
     reg.emplace<Transform>(child2, t);
 
     if (auto mesh_result = create_textured_quad_mesh())
@@ -116,14 +116,19 @@ std::expected<void, std::string> update(App& app)
     draw_inspector(app);
 
     auto& tParent = app.reg.get<Transform>(parent);
-    tParent.rotation.z += 0.8f * static_cast<float>(app.delta_time);   // parent spin
-    tParent.dirty = true;
-
+    auto rotation = tParent.get_rotation();
+    rotation.z += 0.8f * static_cast<float>(app.delta_time);
+    tParent.set_rotation(rotation);
+    
     auto& tchild1 = app.reg.get<Transform>(child1);
-    tchild1.rotation.z += 1.6f * static_cast<float>(app.delta_time);   // parent spin
+    rotation = tchild1.get_rotation();
+    rotation.z += 1.6f * static_cast<float>(app.delta_time);
+    tchild1.set_rotation(rotation);
 
     auto& tchild2 = app.reg.get<Transform>(child2);
-    tchild2.rotation.z += 6.4f * static_cast<float>(app.delta_time);   // parent spin
+    rotation = tchild2.get_rotation();
+    rotation.z += 6.4f * static_cast<float>(app.delta_time);
+    tchild2.set_rotation(rotation);
 
     return {};
 }

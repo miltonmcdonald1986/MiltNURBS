@@ -229,46 +229,34 @@ namespace
             }
             else
             {
-                displayPos = transform->position;
+                displayPos = transform->get_position();
             }
 
             // Editable field
             if (ImGui::InputFloat3("##pos", &displayPos.x, "%.3f"))
-            {
-                transform->position = displayPos;
-                transform->dirty = true;
-            }
+                transform->set_position(displayPos);
 
             ImGui::SameLine();
             if (ImGui::Button("Reset") && initial)
-            {
-                transform->position = initial->position;
-                transform->dirty = true;
-            }
+                transform->set_position(initial->get_position());
 
             ImGui::PopID();
 
             // ============================================================
             // Rotation (degrees UI, radians internal)
             // ============================================================
-            glm::vec3 rotDeg = glm::degrees(transform->rotation);
+            glm::vec3 rotDeg = glm::degrees(transform->get_rotation());
 
             ImGui::Text("Rotation");
             ImGui::SameLine(120);
             ImGui::PushID("rot");
 
             if (ImGui::InputFloat3("##rot", &rotDeg.x, "%.1f"))
-            {
-                transform->rotation = glm::radians(rotDeg);
-                transform->dirty = true;
-            }
+                transform->set_rotation(glm::radians(rotDeg));
 
             ImGui::SameLine();
             if (ImGui::Button("Reset") && initial)
-            {
-                transform->rotation = initial->rotation;
-                transform->dirty = true;
-            }
+                transform->set_rotation(initial->get_rotation());
 
             ImGui::PopID();
 
@@ -279,17 +267,13 @@ namespace
             ImGui::SameLine(120);
             ImGui::PushID("scale");
 
-            if (ImGui::InputFloat3("##scale", &transform->scale.x, "%.3f"))
-            {
-                transform->dirty = true;
-            }
+            auto scale = transform->get_scale();
+            if (ImGui::InputFloat3("##scale", &scale.x, "%.3f"))
+                transform->set_scale(scale);
 
             ImGui::SameLine();
             if (ImGui::Button("Reset") && initial)
-            {
-                transform->scale = initial->scale;
-                transform->dirty = true;
-            }
+                transform->set_scale(initial->get_scale());
 
             ImGui::PopID();
         }
