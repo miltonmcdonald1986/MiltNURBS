@@ -4,7 +4,6 @@
 
 #include <graphics/app/app_guard.h>
 #include <graphics/app/lifecycle.h>
-#include <graphics/platform/platform.h>
 #include <graphics/platform/window.h>
 #include <graphics/rendering/renderer.h>
 #include <graphics/scene/scene.h>
