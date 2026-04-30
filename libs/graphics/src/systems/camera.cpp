@@ -2,6 +2,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <graphics/platform/platform.h>
 #include <graphics/systems/ecs_observers.h>
 #include <graphics/components/world_matrix.h>
 
@@ -99,25 +100,25 @@ namespace graphics::systems::camera
                     app.input.scroll.y = 0.0f; // consume
                 }
 
-                float speed = 5.0f * static_cast<float>(app.delta_time);
+                float speed = 5.0f * static_cast<float>(app.time.delta_time);
 
                 if (app.input.keys.is_down(GLFW_KEY_W))
-                    move_camera_forward(transform, app.reg, entity, speed);
+                    move_camera_forward(transform, reg, entity, speed);
 
                 if (app.input.keys.is_down(GLFW_KEY_S))
-                    move_camera_forward(transform, app.reg, entity, -speed);
+                    move_camera_forward(transform, reg, entity, -speed);
 
                 if (app.input.keys.is_down(GLFW_KEY_D))
-                    move_camera_right(transform, app.reg, entity, speed);
+                    move_camera_right(transform, reg, entity, speed);
 
                 if (app.input.keys.is_down(GLFW_KEY_A))
-                    move_camera_right(transform, app.reg, entity, -speed);
+                    move_camera_right(transform, reg, entity, -speed);
 
                 if (app.input.keys.is_down(GLFW_KEY_E))
-                    move_camera_up(transform, app.reg, entity, speed);
+                    move_camera_up(transform, reg, entity, speed);
 
                 if (app.input.keys.is_down(GLFW_KEY_Q))
-                    move_camera_up(transform, app.reg, entity, -speed);
+                    move_camera_up(transform, reg, entity, -speed);
             }
         }
     }

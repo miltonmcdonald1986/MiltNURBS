@@ -14,7 +14,7 @@ namespace graphics::app::app_guard
 
 	AppGuard::~AppGuard()
 	{
-		shutdown(app);
+		shutdown();
 	}
 
 }

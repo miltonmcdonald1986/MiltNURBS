@@ -3,14 +3,14 @@
 namespace graphics::platform::platform
 {
 
-    void poll_events()
-    {
-        glfwPollEvents();
-    }
+ //   void poll_events()
+ //   {
+ //       glfwPollEvents();
+ //   }
 
-    void swap_buffers(GLFWwindow* pWindow)
-    {
-        glfwSwapBuffers(pWindow);
-	}
+ //   void swap_buffers(GLFWwindow* pWindow)
+ //   {
+ //       glfwSwapBuffers(pWindow);
+	//}
 
 }

@@ -1,9 +1,12 @@
 #include <graphics/app/app.h>
+
 #include <graphics/platform/glfw_callbacks.h>
+#include <graphics/platform/window.h>
 
 #include <print>
 
 using graphics::app::app::App;
+using graphics::platform::window::Window;
 
 namespace graphics::platform::glfw_callbacks
 {
@@ -32,12 +35,17 @@ namespace graphics::platform::glfw_callbacks
 
     void glfw_framebuffer_size_callback(GLFWwindow* pWindow, int w, int h)
     {
-        if (App* app = static_cast<App*>(glfwGetWindowUserPointer(pWindow)))
-        {
-            app->winState.width = w;
-            app->winState.height = h;
-        }
+        App* p_app = static_cast<App*>(glfwGetWindowUserPointer(pWindow));
+        if (!p_app)
+            return;
 
+        Window* p_window = p_app->p_window;
+        if (!p_window)
+            return;
+
+        p_window->window_state.width = w;
+        p_window->window_state.height = h;
+        
         glViewport(0, 0, w, h);
     }
 

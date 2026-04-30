@@ -8,7 +8,7 @@ namespace graphics::ui::imgui_layer
 	
 	void begin_imgui_frame();
 	void end_imgui_frame();
-	void init_imgui(app::app::App& app);
+	void init_imgui(GLFWwindow* p_window);
 
 }
 

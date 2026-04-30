@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_APP_GL_CONFIG_H
 #define GRAPHICS_APP_GL_CONFIG_H
 
-#include <GLFW/glfw3.h>
+#include <graphics/platform/gl_includes.h>
 
 namespace graphics::app::gl_config
 {

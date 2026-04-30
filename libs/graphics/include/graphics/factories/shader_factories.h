@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <string>
 
-#include <GL/gl3w.h>
+#include <graphics/platform/gl_includes.h>
 
 namespace graphics::factories::shader_factories
 {

@@ -32,7 +32,7 @@ namespace graphics::ui::imgui_layer
         }
     }
 
-    void init_imgui(App& app)
+    void init_imgui(GLFWwindow* p_window)
     {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -52,7 +52,7 @@ namespace graphics::ui::imgui_layer
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
 
-        ImGui_ImplGlfw_InitForOpenGL(app.winState.pHandle, true);
+        ImGui_ImplGlfw_InitForOpenGL(p_window, true);
         ImGui_ImplOpenGL3_Init("#version 330 core");
     }
 

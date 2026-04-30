@@ -1,6 +1,5 @@
-#include <graphics/systems/render.h>
+#include <graphics/rendering/renderer.h>
 
-#include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <graphics/components/camera.h>
@@ -8,38 +7,61 @@
 #include <graphics/components/mesh_gl.h>
 #include <graphics/components/shader.h>
 #include <graphics/components/texture.h>
-#include <graphics/components/transform.h>
 #include <graphics/components/world_matrix.h>
+#include <graphics/platform/gl_includes.h>
 #include <graphics/systems/camera.h>
-#include <graphics/systems/transform.h>
 
-using graphics::app::app::App;
 using graphics::components::camera::Camera;
-using graphics::components::camera::ProjectionType;
 using graphics::components::color::Color;
 using graphics::components::mesh_gl::MeshGL;
 using graphics::components::shader::Shader;
 using graphics::components::texture::Texture;
-using graphics::components::transform::Transform;
 using graphics::components::world_matrix::WorldMatrix;
+using graphics::scene::Scene;
 using graphics::systems::camera::compute_projection;
-using graphics::systems::transform::compute_model_matrix;
 
-namespace graphics::systems::render
+namespace graphics::rendering::renderer
 {
 
-    std::expected<void, std::string> render_system_update(App& app)
+    std::expected<void, std::string> Renderer::init(int framebuffer_width, int framebuffer_height)
     {
+        glViewport(0, 0, framebuffer_width, framebuffer_height);
+
+        if (gl_state.enable_depth_test)
+        {
+            glEnable(GL_DEPTH_TEST);
+            glDepthFunc(gl_state.depth_func);
+        }
+
+        glPolygonMode(GL_FRONT_AND_BACK, gl_state.polygon_mode);
+
+        auto& clearColor = gl_state.clear_color;
+        glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+
+        // Check for any OpenGL errors that may have occurred during initialization.
+        if (glGetError() != GL_NO_ERROR)
+            return std::unexpected("Failed to init GL state");
+
+        return {};
+    }
+
+    std::expected<void, std::string> Renderer::update(Scene* p_scene)
+    {
+        if (!p_scene)
+            return std::unexpected("No active scene found");
+
+        entt::registry& reg = p_scene->reg;
+
         glClearColor(
-            app.glState.clear_color[0],
-            app.glState.clear_color[1],
-            app.glState.clear_color[2],
-            app.glState.clear_color[3]
+            gl_state.clear_color[0],
+            gl_state.clear_color[1],
+            gl_state.clear_color[2],
+            gl_state.clear_color[3]
         );
 
-        glClear(app.glState.clear_buffer_mask);
+        glClear(gl_state.clear_buffer_mask);
 
-        if (app.glState.display_wireframe)
+        if (gl_state.display_wireframe)
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         else
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -47,22 +69,24 @@ namespace graphics::systems::render
         // ---------------------------------------------------------
         // 1. Find the active camera
         // ---------------------------------------------------------
-        entt::entity camEntity = entt::null;
-        auto camView = app.reg.view<Camera, WorldMatrix>();
-
-        for (auto e : camView) {
-            if (camView.get<Camera>(e).primary) {
-                camEntity = e;
+        entt::entity cam_ent = entt::null;
+        auto cam_view = reg.view<Camera, WorldMatrix>();
+        for (auto [ent, camera, world_matrix] : cam_view.each())
+        {
+            if (camera.primary) 
+            {
+                cam_ent = ent;
                 break;
             }
         }
 
-        if (camEntity == entt::null) {
+        if (cam_ent == entt::null) 
+        {
             return std::unexpected("No active camera found");
         }
 
-        auto& cam = app.reg.get<Camera>(camEntity);
-        auto& camWM = app.reg.get<WorldMatrix>(camEntity);
+        auto& cam = reg.get<Camera>(cam_ent);
+        auto& camWM = reg.get<WorldMatrix>(cam_ent);
 
         // ---------------------------------------------------------
         // 2. Compute view + projection
@@ -73,13 +97,13 @@ namespace graphics::systems::render
         // ---------------------------------------------------------
         // 3. Render all meshes
         // ---------------------------------------------------------
-        auto ents = app.reg.view<Shader, MeshGL>();
+        auto ents = reg.view<Shader, MeshGL>();
         for (auto [entity, shader, mesh] : ents.each())
         {
             glUseProgram(shader.id);
 
             // --- Optional Color uniform ---
-            if (auto color = app.reg.try_get<Color>(entity))
+            if (auto color = reg.try_get<Color>(entity))
             {
                 GLint loc = glGetUniformLocation(shader.id, "u_color");
                 if (loc >= 0)
@@ -87,7 +111,7 @@ namespace graphics::systems::render
             }
 
             // --- Optional Texture binding ---
-            if (auto tex = app.reg.try_get<Texture>(entity))
+            if (auto tex = reg.try_get<Texture>(entity))
             {
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, tex->id);
@@ -99,7 +123,7 @@ namespace graphics::systems::render
 
             // --- Upload uModel ---
             if (GLint loc = glGetUniformLocation(shader.id, "uModel"); loc >= 0)
-                glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(app.reg.get<WorldMatrix>(entity).value));
+                glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(reg.get<WorldMatrix>(entity).value));
 
             // --- Upload uView ---
             if (GLint loc = glGetUniformLocation(shader.id, "uView"); loc >= 0)

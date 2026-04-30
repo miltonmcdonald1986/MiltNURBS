@@ -9,6 +9,8 @@
 #include <graphics/components/shake.h>
 #include <graphics/components/tags.h>
 #include <graphics/components/transform.h>
+#include <graphics/rendering/renderer.h>
+#include <graphics/scene/scene.h>
 
 using graphics::app::app::App;
 using graphics::components::color::Color;
@@ -18,15 +20,23 @@ using graphics::components::tags::Selected;
 using graphics::components::tags::Shakeable;
 using graphics::components::shake::ShakeOnce;
 using graphics::components::transform::Transform;
+using graphics::rendering::renderer::Renderer;
+using graphics::scene::Scene;
 
 namespace graphics::ui::widgets
 {
 
     void draw_flash_widget(App& app)
     {
+        Scene* p_scene = app.p_active_scene;
+        if (!p_scene)
+            return;
+
+        entt::registry& reg = p_scene->reg;
+
         ImGui::SetNextWindowSize(ImVec2(300, 0), ImGuiCond_FirstUseEver);
         ImGui::Begin("Flash Settings");
-        auto view = app.reg.view<Flash>();
+        auto view = reg.view<Flash>();
         for (auto [entity, flash] : view.each()) {
 			float speed = static_cast<float>(flash.speed);
             std::string label = "entity " + std::to_string((uint32_t)entity);
@@ -38,9 +48,15 @@ namespace graphics::ui::widgets
 
     void draw_per_entity_color_widget(App& app)
     {
+        Scene* p_scene = app.p_active_scene;
+        if (!p_scene)
+            return;
+
+        entt::registry& reg = p_scene->reg;
+
         ImGui::SetNextWindowSize(ImVec2(300, 0), ImGuiCond_FirstUseEver);
         ImGui::Begin("Entity Colors");
-        auto view = app.reg.view<Color>();
+        auto view = reg.view<Color>();
         for (auto [entity, color] : view.each()) {
             std::string label = "entity " + std::to_string((uint32_t)entity);
             ImGui::ColorEdit4(label.c_str(), color.base);
@@ -50,19 +66,29 @@ namespace graphics::ui::widgets
 
 	void draw_render_settings_widget(App& app)
 	{
+        Renderer* p_renderer = app.p_renderer;
+        if (!p_renderer)
+            return;
+
         ImGui::SetNextWindowSize(ImVec2(300, 0), ImGuiCond_FirstUseEver);
         ImGui::Begin("Render Settings");
-        ImGui::Checkbox("Wireframe", &app.glState.display_wireframe);
-        ImGui::ColorEdit3("Background", app.glState.clear_color);
+        ImGui::Checkbox("Wireframe", &p_renderer->gl_state.display_wireframe);
+        ImGui::ColorEdit3("Background", p_renderer->gl_state.clear_color);
         ImGui::End();
 	}
 
     void draw_shake_widget(App& app)
     {
+        Scene* p_scene = app.p_active_scene;
+        if (!p_scene)
+            return;
+
+        entt::registry& reg = p_scene->reg;
+
         ImGui::SetNextWindowSize(ImVec2(300, 0), ImGuiCond_FirstUseEver);
         ImGui::Begin("Shake Settings");
 
-        auto view = app.reg.view<Shake>();
+        auto view = reg.view<Shake>();
         for (auto [entity, shake] : view.each())
         {
             std::string label = "entity " + std::to_string((uint32_t)entity);
@@ -83,10 +109,16 @@ namespace graphics::ui::widgets
 
     void draw_shake_once_widget(App& app)
     {
+        Scene* p_scene = app.p_active_scene;
+        if (!p_scene)
+            return;
+
+        entt::registry& reg = p_scene->reg;
+
         ImGui::SetNextWindowSize(ImVec2(300, 0), ImGuiCond_FirstUseEver);
         ImGui::Begin("Shake Once");
 
-        auto view = app.reg.view<Transform, Shakeable>();
+        auto view = reg.view<Transform, Shakeable>();
 
         for (auto [entity, tform] : view.each())
         {
@@ -111,7 +143,7 @@ namespace graphics::ui::widgets
                 s.speed = speed;
                 //s.base_position = tform.position;
 
-                app.reg.emplace_or_replace<ShakeOnce>(entity, s);
+                reg.emplace_or_replace<ShakeOnce>(entity, s);
             }
 
             ImGui::Separator();

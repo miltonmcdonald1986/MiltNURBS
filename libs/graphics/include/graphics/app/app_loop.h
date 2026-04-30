@@ -3,6 +3,7 @@
 
 #include <expected>
 #include <functional>
+#include <string>
 
 #include "app.h"
 

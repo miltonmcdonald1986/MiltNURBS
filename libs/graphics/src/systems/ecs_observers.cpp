@@ -4,10 +4,12 @@
 
 #include <graphics/app/app.h>
 #include <graphics/components/world_matrix.h>
+#include <graphics/scene/scene.h>
 
 using graphics::app::app::App;
 using graphics::components::transform::Transform;
 using graphics::components::world_matrix::WorldMatrix;
+using graphics::scene::Scene;
 
 namespace graphics::systems::ecs_observers
 {
@@ -20,10 +22,14 @@ namespace graphics::systems::ecs_observers
     void on_transform_constructed(entt::registry& reg, entt::entity e)
     {
         App& app = get_app(reg);
+        
+        Scene* scene = app.p_active_scene;
+        if (!scene)
+            return;
 
         // 1. Record initial transform (your existing behavior)
         const Transform& t = reg.get<Transform>(e);
-        app.initialTransforms[e] = t;
+        scene->initial_transforms[e] = t;
 
         // 2. Auto-add WorldMatrix if missing
         if (!reg.any_of<WorldMatrix>(e))
@@ -37,25 +43,43 @@ namespace graphics::systems::ecs_observers
     void on_transform_updated(entt::registry& reg, entt::entity e) 
     {
         App& app = get_app(reg);
-        if (!app.initialTransforms.contains(e)) {
+        
+        Scene* scene = app.p_active_scene;
+        if (!scene)
+            return;
+
+        auto& initial_transforms = scene->initial_transforms;
+
+        if (!initial_transforms.contains(e)) {
             const Transform& t = reg.get<Transform>(e);
-            app.initialTransforms[e] = t;
+            initial_transforms[e] = t;
         }
     }
 
     void on_transform_destroyed(entt::registry& reg, entt::entity e) 
     {
         App& app = get_app(reg);
-        app.initialTransforms.erase(e);
+
+        Scene* scene = app.p_active_scene;
+        if (!scene)
+            return;
+
+        scene->initial_transforms.erase(e);
     }
 
     void register_transform_observers(App& app) 
     {
-        app.reg.ctx().emplace<App*>(&app);
+        // TODO: apply this to all scenes once we have a mechanism for more than one scene???
 
-        app.reg.on_construct<Transform>().connect<&on_transform_constructed>();
-        app.reg.on_update<Transform>().connect<&on_transform_updated>();
-        app.reg.on_destroy<Transform>().connect<&on_transform_destroyed>();
+        Scene* scene = app.p_active_scene;
+        if (!scene)
+            return;
+
+        scene->reg.ctx().emplace<App*>(&app);
+        
+        scene->reg.on_construct<Transform>().connect<&on_transform_constructed>();
+        scene->reg.on_update<Transform>().connect<&on_transform_updated>();
+        scene->reg.on_destroy<Transform>().connect<&on_transform_destroyed>();
     }
 
 }

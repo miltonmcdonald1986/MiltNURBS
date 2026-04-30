@@ -10,6 +10,7 @@
 #include <graphics/components/tags.h>
 #include <graphics/components/shake.h>
 #include <graphics/components/transform.h>
+#include <graphics/scene/scene.h>
 #include <graphics/systems/ecs_observers.h>
 
 using graphics::app::app::App;
@@ -20,6 +21,7 @@ using graphics::components::shake::ShakeOnce;
 using graphics::components::tags::Selected;
 using graphics::components::tags::Shakeable;
 using graphics::components::transform::Transform;
+using graphics::scene::Scene;
 using graphics::systems::ecs_observers::get_app;
 using graphics::ui::inspector::InspectorFn;
 
@@ -195,9 +197,15 @@ namespace
 
         App& app = get_app(reg);
 
+        Scene* p_scene = app.p_active_scene;
+        if (!p_scene)
+            return;
+
+        auto& initial_transforms = p_scene->initial_transforms;
+
         // Look up initial transform (if it exists)
-        auto it = app.initialTransforms.find(e);
-        const Transform* initial = (it != app.initialTransforms.end()) ? &it->second : nullptr;
+        auto it = initial_transforms.find(e);
+        const Transform* initial = (it != initial_transforms.end()) ? &it->second : nullptr;
 
         if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
         {
@@ -300,9 +308,15 @@ namespace graphics::ui::inspector
     // ------------------------------------------------------------
     void draw_inspector(App& app)
     {
+        Scene* p_scene = app.p_active_scene;
+        if (!p_scene)
+            return;
+
+        entt::registry& reg = p_scene->reg;
+
         ImGui::Begin("Inspector");
 
-        auto view = app.reg.view<Selected>();
+        auto view = reg.view<Selected>();
         if (view.empty())
         {
             ImGui::Text("No entity selected");
@@ -314,7 +328,7 @@ namespace graphics::ui::inspector
 
         for (auto& [name, fn] : inspectors)
         {
-            fn(app.reg, entity);
+            fn(reg, entity);
         }
 
         ImGui::End();

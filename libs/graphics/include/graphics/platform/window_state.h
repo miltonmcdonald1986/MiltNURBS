@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_PLATFORM_WINDOW_STATE_H
 #define GRAPHICS_PLATFORM_WINDOW_STATE_H
 
-#include <GLFW/glfw3.h>
+#include <graphics/platform/gl_includes.h>
 
 namespace graphics::platform::window_state
 {

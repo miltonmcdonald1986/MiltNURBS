@@ -1,6 +1,8 @@
 #ifndef GRAPHICS_APP_INPUT_STATE_H
 #define GRAPHICS_APP_INPUT_STATE_H
 
+#include <graphics/platform/gl_includes.h>
+
 namespace graphics::app::input_state
 {
 

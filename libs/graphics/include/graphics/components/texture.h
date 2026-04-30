@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_COMPONENTS_TEXTURE_H
 #define GRAPHICS_COMPONENTS_TEXTURE_H
 
-#include <GL/gl3w.h>
+#include <graphics/platform/gl_includes.h>
 
 namespace graphics::components::texture
 {

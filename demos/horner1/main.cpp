@@ -14,6 +14,8 @@
 #include <graphics/factories/texture_factories.h>
 #include <graphics/factories/shader_factories.h>
 #include <graphics/platform/glfw_callbacks.h>
+#include <graphics/platform/window.h>
+#include <graphics/scene/scene.h>
 #include <graphics/systems/animation.h>
 #include <graphics/systems/camera.h>
 #include <graphics/ui/entity_list.h>
@@ -40,6 +42,8 @@ using graphics::factories::mesh_factories::create_textured_triangle_mesh;
 using graphics::factories::texture_factories::create_texture_from_file;
 using graphics::factories::shader_factories::create_textured_color_mvp_shader;
 using graphics::factories::shader_factories::create_textured_mvp_shader;
+using graphics::platform::window::Window;
+using graphics::scene::Scene;
 using graphics::systems::animation::update_flash;
 using graphics::systems::animation::update_shake_once;
 using graphics::systems::camera::get_forward;
@@ -61,17 +65,25 @@ entt::entity camera;
 
 std::expected<void, std::string> init(App& app)
 {
-    entt::registry& reg = app.reg;
+    Scene* p_scene = app.p_active_scene;
+    if (!p_scene)
+        return std::unexpected("No active scene found");
+
+    Window* p_window = app.p_window;
+    if (!p_window)
+        return std::unexpected("No window found");
+
+    entt::registry& reg = p_scene->reg;
 
     for (int i = 0; i < 5; i++) {
-        entt::entity e = app.reg.create();
-        app.reg.emplace<Transform>(e,
+        entt::entity e = reg.create();
+        reg.emplace<Transform>(e,
             glm::vec3(i * 2.0f, 0, -5.0f),
             glm::vec3(0, 0, 0),
             glm::vec3(1, 1, 1)
         );
-        app.reg.emplace<MeshGL>(e, *create_textured_cube_mesh());
-        app.reg.emplace<Shader>(e, *create_textured_mvp_shader());
+        reg.emplace<MeshGL>(e, *create_textured_cube_mesh());
+        reg.emplace<Shader>(e, *create_textured_mvp_shader());
         if (auto tex_result = create_texture_from_file(R"(C:\Users\milto\Downloads\wall.jpg)"))
             reg.emplace<Texture>(e, *tex_result);
         else
@@ -87,7 +99,7 @@ std::expected<void, std::string> init(App& app)
         .fov = glm::radians(45.f),
         .nearPlane = 0.1f,
         .farPlane = 1000.0f,
-        .aspect = app.winState.width / float(app.winState.height),
+        .aspect = p_window->window_state.width / float(app.p_window->window_state.height),
         .primary = true
         });
 

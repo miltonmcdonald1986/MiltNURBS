@@ -5,21 +5,28 @@
 #include <imgui.h>
 
 #include <graphics/components/tags.h>
+#include <graphics/scene/scene.h>
 
 using graphics::app::app::App;
 using graphics::components::tags::Selected;
+using graphics::scene::Scene;
 
 namespace graphics::ui::entity_list
 {
 
     void draw_entity_list(App& app)
     {
+        Scene* p_scene = app.p_active_scene;
+        if (!p_scene)
+            return;
+
+        entt::registry& reg = p_scene->reg;
+
         ImGui::Begin("Entities");
 
         // Collect all entities into a vector
         std::vector<entt::entity> entities;
-
-        auto view = app.reg.view<entt::entity>();
+        auto view = reg.view<entt::entity>();
         for (auto entity : view)
             entities.push_back(entity);
 
@@ -35,16 +42,16 @@ namespace graphics::ui::entity_list
             uint32_t id = (uint32_t)entity;
             std::string label = "Entity " + std::to_string(id);
 
-            bool is_selected = app.reg.all_of<Selected>(entity);
+            bool is_selected = reg.all_of<Selected>(entity);
 
             if (ImGui::Selectable(label.c_str(), is_selected))
             {
                 // Clear previous selection
-                for (auto e : app.reg.view<Selected>())
-                    app.reg.remove<Selected>(e);
+                for (auto e : reg.view<Selected>())
+                    reg.remove<Selected>(e);
 
                 // Select this one
-                app.reg.emplace<Selected>(entity);
+                reg.emplace<Selected>(entity);
             }
         }
 
