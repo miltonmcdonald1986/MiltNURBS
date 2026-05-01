@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_ENGINE_APP_DATA_H
 #define GRAPHICS_ENGINE_APP_DATA_H
 
-#include <graphics/app/input_state.h>
+#include <graphics/input/input_state.h>
 #include <graphics/platform/time.h>
 
 // Forward declarations
@@ -14,7 +14,7 @@ namespace graphics::engine
 
 	struct AppData
 	{
-		app::input_state::InputState input{};
+		input::InputState input{};
 		platform::time::Time time{};
 		platform::window::Window* p_window{ nullptr };
 		rendering::renderer::Renderer* p_renderer{ nullptr };

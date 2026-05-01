@@ -8,6 +8,11 @@ namespace graphics::platform::window_state
 
     struct WindowState
     {
+        float aspect() const
+        {
+            return float(width) / float(height);
+        }
+
         GLFWwindow* pHandle{ nullptr };
         int height{ 768 };
         int width{ 1024 };

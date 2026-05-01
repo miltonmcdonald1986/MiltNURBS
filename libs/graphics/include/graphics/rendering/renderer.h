@@ -13,7 +13,7 @@ namespace graphics::rendering::renderer
 	struct Renderer
 	{
 		std::expected<void, std::string> init(int framebuffer_width, int framebuffer_height);
-		std::expected<void, std::string> update(scene::Scene* p_scene);
+		std::expected<void, std::string> update(scene::Scene* p_scene, float aspect);
 
 		systems::gl_state::GLState gl_state;
 	};

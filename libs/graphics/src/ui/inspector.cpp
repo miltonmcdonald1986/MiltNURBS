@@ -54,12 +54,8 @@ namespace
         {
             if (ImGui::CollapsingHeader("Flash"))
             {
-                float speed = static_cast<float>(flash->speed);
-                if (ImGui::SliderFloat("Speed", &speed, 0.1f, 10.0f))
-                    flash->speed = speed;
-
-                 // Optional: show internal time for debugging
-                 ImGui::Text("t = %.3f", flash->t);
+                ImGui::SliderFloat("Speed", &flash->speed, 0.1f, 10.0f);
+                ImGui::Text("t = %.3f", flash->t);
             }
         }
     }

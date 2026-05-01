@@ -8,7 +8,7 @@ namespace graphics::components::shake
 
     struct Shake
     {
-        double t = 0.0;
+        float t = 0.0;
         float intensity = 0.02f; // how strong the shake is
         float speed = 60.0f;     // how fast it jitters
 		

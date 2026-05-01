@@ -1,18 +1,21 @@
 #include <graphics/engine/engine.h>
 
+#include <graphics/camera/camera_systems.h>
 #include <graphics/engine/app_data.h>
+#include <graphics/input/input_systems.h>
 #include <graphics/platform/window.h>
 #include <graphics/rendering/renderer.h>
 #include <graphics/scene/scene.h>
 #include <graphics/systems/animation.h>
-#include <graphics/systems/camera.h>
 #include <graphics/systems/color.h>
 #include <graphics/systems/ecs_observers.h>
 #include <graphics/systems/transform.h>
 #include <graphics/ui/imgui_layer.h>
 #include <graphics/ui/inspector.h>
 
+using graphics::camera::update_camera_system;
 using graphics::engine::AppData;
+using graphics::input::update_input_system;
 using graphics::platform::window::Window;
 using graphics::rendering::renderer::Renderer;
 using graphics::scene::Scene;
@@ -20,7 +23,6 @@ using graphics::systems::animation::update_flash;
 using graphics::systems::animation::update_shake;
 using graphics::systems::animation::update_shake_base_world;
 using graphics::systems::animation::update_shake_once;
-using graphics::systems::camera::update_camera_system;
 using graphics::systems::color::update_color_no_flash;
 using graphics::systems::ecs_observers::register_transform_observers;
 using graphics::systems::transform::update_transform_system;
@@ -106,16 +108,17 @@ namespace
                 continue;
 
             // ENGINE SYSTEMS (authoritative)
+            update_input_system(p_scene->reg);
             update_transform_system(p_scene->reg);
 
             // ENGINE SYSTEMS (run-time effects)
-            update_camera_system(p_scene->reg);
+            update_camera_system(p_scene->reg, data.time.dt);
             update_color_no_flash(p_scene->reg);
-            update_flash(p_scene->reg, data.time.delta_time);
-            update_shake(p_scene->reg, data.time.delta_time);
-            update_shake_once(p_scene->reg, data.time.delta_time);
+            update_flash(p_scene->reg, data.time.dt);
+            update_shake(p_scene->reg, data.time.dt);
+            update_shake_once(p_scene->reg, data.time.dt);
 
-            if (auto result = p_renderer->update(p_scene); !result)
+            if (auto result = p_renderer->update(p_scene, p_window->window_state.aspect()); !result)
                 return std::unexpected(std::format("Render error: {}", result.error()));
 
             data.input.reset_frame_accumulators();

@@ -1,4 +1,8 @@
-#include <graphics/components/camera.h>
+#include <graphics/camera/camera.h>
+#include <graphics/camera/camera_controller.h>
+#include <graphics/camera/camera_controller_state.h>
+#include <graphics/camera/orthographic_camera.h>
+#include <graphics/camera/perspective_camera.h>
 #include <graphics/components/color.h>
 #include <graphics/components/flash.h>
 #include <graphics/components/mesh_gl.h>
@@ -17,13 +21,15 @@
 #include <graphics/platform/window.h>
 #include <graphics/scene/scene.h>
 #include <graphics/systems/animation.h>
-#include <graphics/systems/camera.h>
 #include <graphics/ui/entity_list.h>
 #include <graphics/ui/inspector.h>
 #include <graphics/ui/widgets.h>
 
-using graphics::components::camera::Camera;
-using graphics::components::camera::ProjectionType;
+using graphics::camera::Camera;
+using graphics::camera::CameraController;
+using graphics::camera::CameraControllerState;
+using graphics::camera::OrthographicCamera;
+using graphics::camera::PerspectiveCamera;
 using graphics::components::color::Color;
 using graphics::components::flash::Flash;
 using graphics::components::mesh_gl::MeshGL;
@@ -46,13 +52,6 @@ using graphics::platform::window::Window;
 using graphics::scene::Scene;
 using graphics::systems::animation::update_flash;
 using graphics::systems::animation::update_shake_once;
-using graphics::systems::camera::get_forward;
-using graphics::systems::camera::get_right;
-using graphics::systems::camera::get_up;
-using graphics::systems::camera::apply_mouse_look;
-using graphics::systems::camera::move_camera_forward;
-using graphics::systems::camera::move_camera_right;
-using graphics::systems::camera::move_camera_up;
 using graphics::ui::entity_list::draw_entity_list;
 using graphics::ui::inspector::draw_inspector;
 using graphics::ui::widgets::draw_flash_widget;
@@ -97,15 +96,12 @@ std::expected<void, std::string> init(AppData* p_data)
 
     reg.emplace<Transform>(camera, Transform(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)));
 
-    reg.emplace<Camera>(camera, Camera{
-        .type = ProjectionType::Perspective,
-        .fov = glm::radians(45.f),
-        .nearPlane = 0.1f,
-        .farPlane = 1000.0f,
-        .aspect = p_window->window_state.width / float(p_data->p_window->window_state.height),
-        .primary = true
-        });
-
+    reg.emplace<Camera>(camera, Camera{ Camera::ProjectionType::Perspective });
+    reg.emplace<CameraController>(camera, CameraController{});
+    reg.emplace<CameraControllerState>(camera, CameraControllerState{});
+    reg.emplace<OrthographicCamera>(camera, OrthographicCamera{});
+    reg.emplace<PerspectiveCamera>(camera, PerspectiveCamera{});
+    
     return {};
 }
 

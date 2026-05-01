@@ -9,12 +9,12 @@ namespace graphics::platform::time
     {
         double now = glfwGetTime();
 
-        if (last_time == 0.)
-            delta_time = 0.;
+        if (prev == 0.)
+            dt = 0.f;
         else
-            delta_time = now - last_time;
+            dt = static_cast<float>(now - prev);
 
-        last_time = now;
+        prev = now;
     }
 
 }

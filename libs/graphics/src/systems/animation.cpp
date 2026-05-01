@@ -18,14 +18,14 @@ using graphics::components::world_matrix::WorldMatrix;
 namespace graphics::systems::animation
 {
 
-    void update_flash(entt::registry& reg, double dt)
+    void update_flash(entt::registry& reg, float dt)
     {
         auto view = reg.view<Color, Flash>();
         for (auto [entity, color, flash] : view.each())
         {
             flash.t += dt * flash.speed;
 
-            float intensity = static_cast<float>((std::sin(flash.t) * 0.5) + 0.5);
+            float intensity = std::sin(flash.t) * 0.5f + 0.5f;
 
             color.rgba[0] = color.base[0] * intensity;
             color.rgba[1] = color.base[1] * intensity;
@@ -34,16 +34,16 @@ namespace graphics::systems::animation
         }
     }
 
-    void update_shake(entt::registry& reg, double dt)
+    void update_shake(entt::registry& reg, float dt)
     {
         auto view = reg.view<WorldMatrix, Shake>();
         for (auto [e, wm, shake] : view.each())
         {
             shake.t += dt * shake.speed;
 
-            float dx = static_cast<float>(std::sin(shake.t * 1.3f)) * shake.intensity;
-            float dy = static_cast<float>(std::sin(shake.t * 2.1f)) * shake.intensity;
-            float dz = static_cast<float>(std::sin(shake.t * 3.7f)) * shake.intensity;
+            float dx = std::sin(shake.t * 1.3f) * shake.intensity;
+            float dy = std::sin(shake.t * 2.1f) * shake.intensity;
+            float dz = std::sin(shake.t * 3.7f) * shake.intensity;
 
             glm::vec3 offset(dx, dy, dz);
             wm.value = shake.base_world * glm::translate(glm::mat4(1), offset);
@@ -58,13 +58,13 @@ namespace graphics::systems::animation
             shake_once->base_world = world_matrix;
     }
 
-    void update_shake_once(entt::registry& reg, double dt)
+    void update_shake_once(entt::registry& reg, float dt)
     {
         auto view = reg.view<WorldMatrix, ShakeOnce>();
         for (auto [e, wm, shake] : view.each())
         {
             // Countdown
-            shake.time_left -= static_cast<float>(dt);
+            shake.time_left -= dt;
             if (shake.time_left <= 0.f)
             {
                 // Restore original position

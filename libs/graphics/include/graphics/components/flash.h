@@ -6,8 +6,8 @@ namespace graphics::components::flash
 
     struct Flash 
     {
-        double speed = 2.;   // how fast it flashes
-        double t = 0.;       // internal time accumulator
+        float speed = 2.f;   // how fast it flashes
+        float t = 0.f;       // internal time accumulator
     };
 
 }

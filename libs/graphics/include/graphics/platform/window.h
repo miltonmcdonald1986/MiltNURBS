@@ -4,7 +4,7 @@
 #include <expected>
 #include <string>
 
-#include <graphics/app/window_config.h>
+#include <graphics/platform/window_config.h>
 #include <graphics/platform/window_state.h>
 
 // Forward declarations

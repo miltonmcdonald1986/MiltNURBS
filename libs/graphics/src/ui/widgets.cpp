@@ -42,10 +42,8 @@ namespace graphics::ui::widgets
         ImGui::Begin("Flash Settings");
         auto view = reg.view<Flash>();
         for (auto [entity, flash] : view.each()) {
-			float speed = static_cast<float>(flash.speed);
             std::string label = "entity " + std::to_string((uint32_t)entity);
-            ImGui::SliderFloat(label.c_str(), &speed, 0.1f, 10.0f);
-            flash.speed = speed;
+            ImGui::SliderFloat(label.c_str(), &flash.speed, 0.1f, 10.0f);
         }
 		ImGui::End();
     }

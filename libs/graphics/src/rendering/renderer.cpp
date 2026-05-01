@@ -2,23 +2,23 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include <graphics/components/camera.h>
+#include <graphics/camera/camera.h>
+#include <graphics/camera/camera_systems.h>
 #include <graphics/components/color.h>
 #include <graphics/components/mesh_gl.h>
 #include <graphics/components/shader.h>
 #include <graphics/components/texture.h>
 #include <graphics/components/world_matrix.h>
 #include <graphics/platform/gl_includes.h>
-#include <graphics/systems/camera.h>
 
-using graphics::components::camera::Camera;
+using graphics::camera::Camera;
+using graphics::camera::compute_projection;
 using graphics::components::color::Color;
 using graphics::components::mesh_gl::MeshGL;
 using graphics::components::shader::Shader;
 using graphics::components::texture::Texture;
 using graphics::components::world_matrix::WorldMatrix;
 using graphics::scene::Scene;
-using graphics::systems::camera::compute_projection;
 
 namespace graphics::rendering::renderer
 {
@@ -45,7 +45,7 @@ namespace graphics::rendering::renderer
         return {};
     }
 
-    std::expected<void, std::string> Renderer::update(Scene* p_scene)
+    std::expected<void, std::string> Renderer::update(Scene* p_scene, float aspect)
     {
         if (!p_scene)
             return std::unexpected("No active scene found");
@@ -69,30 +69,19 @@ namespace graphics::rendering::renderer
         // ---------------------------------------------------------
         // 1. Find the active camera
         // ---------------------------------------------------------
-        entt::entity cam_ent = entt::null;
-        auto cam_view = reg.view<Camera, WorldMatrix>();
-        for (auto [ent, camera, world_matrix] : cam_view.each())
-        {
-            if (camera.primary) 
-            {
-                cam_ent = ent;
-                break;
-            }
-        }
-
+        entt::entity cam_ent = reg.view<Camera, WorldMatrix>().front();
         if (cam_ent == entt::null) 
         {
             return std::unexpected("No active camera found");
         }
 
-        auto& cam = reg.get<Camera>(cam_ent);
         auto& camWM = reg.get<WorldMatrix>(cam_ent);
 
         // ---------------------------------------------------------
         // 2. Compute view + projection
         // ---------------------------------------------------------
         glm::mat4 view = glm::inverse(camWM.value);
-        glm::mat4 proj = compute_projection(cam);
+        glm::mat4 proj = compute_projection(reg, cam_ent, aspect);
 
         // ---------------------------------------------------------
         // 3. Render all meshes

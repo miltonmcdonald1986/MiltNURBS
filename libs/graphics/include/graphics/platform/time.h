@@ -8,8 +8,8 @@ namespace graphics::platform::time
 	{
 		void update();
 
-		double delta_time{ 0. };
-		double last_time{ 0. };
+		float dt{ 0. };
+		double prev{ 0. };
 	};
 
 }

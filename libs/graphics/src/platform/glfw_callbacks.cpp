@@ -17,16 +17,19 @@ namespace graphics::platform::glfw_callbacks
 
     void glfw_cursor_pos_callback(GLFWwindow* p_window, double x, double y) 
     {
+        static bool first_time = true;
+
         AppData* p_data = static_cast<AppData*>(glfwGetWindowUserPointer(p_window));
         if (!p_data)
             return;
 
         auto& mouse = p_data->input.mouse;
 
-        if (mouse.first_time) {
+        if (first_time) 
+        {
             mouse.x = x;
             mouse.y = y;
-            mouse.first_time = false;
+            first_time = false;
         }
 
         mouse.dx += x - mouse.x;
@@ -70,22 +73,21 @@ namespace graphics::platform::glfw_callbacks
 
         // 2. Update key state (ignore Unknown)
         if (key != Key::Unknown)
-            keys.set(key, action != GLFW_RELEASE);
+            keys[key] = (action != GLFW_RELEASE);
 
         // 3. Update modifier keys from mods bitmask
-        keys.set(Key::LeftShift, (mods & GLFW_MOD_SHIFT) != 0);
-        keys.set(Key::RightShift, (mods & GLFW_MOD_SHIFT) != 0);
+        keys[Key::LeftShift] = ((mods & GLFW_MOD_SHIFT) != 0);
+        keys[Key::RightShift] = ((mods & GLFW_MOD_SHIFT) != 0);
 
-        keys.set(Key::LeftControl, (mods & GLFW_MOD_CONTROL) != 0);
-        keys.set(Key::RightControl, (mods & GLFW_MOD_CONTROL) != 0);
+        keys[Key::LeftControl] = ((mods & GLFW_MOD_CONTROL) != 0);
+        keys[Key::RightControl] = ((mods & GLFW_MOD_CONTROL) != 0);
 
-        keys.set(Key::LeftAlt, (mods & GLFW_MOD_ALT) != 0);
-        keys.set(Key::RightAlt, (mods & GLFW_MOD_ALT) != 0);
+        keys[Key::LeftAlt] = ((mods & GLFW_MOD_ALT) != 0);
+        keys[Key::RightAlt] = ((mods & GLFW_MOD_ALT) != 0);
 
-        keys.set(Key::LeftSuper, (mods & GLFW_MOD_SUPER) != 0);
-        keys.set(Key::RightSuper, (mods & GLFW_MOD_SUPER) != 0);
+        keys[Key::LeftSuper] = ((mods & GLFW_MOD_SUPER) != 0);
+        keys[Key::RightSuper] = ((mods & GLFW_MOD_SUPER) != 0);
     }
-
 
     void glfw_mouse_button_callback(GLFWwindow* p_window, int button, int action, int mods)
     {
@@ -110,20 +112,20 @@ namespace graphics::platform::glfw_callbacks
         // 2. Update mouse buttons in KeyState too (optional but recommended)
         Key mouse_key = translate_glfw_mouse_button(button);
         if (mouse_key != Key::Unknown)
-            keys.set(mouse_key, is_down);
+            keys[mouse_key] = is_down;
 
         // 3. Update modifier keys from mods bitmask
-        keys.set(Key::LeftShift, (mods & GLFW_MOD_SHIFT) != 0);
-        keys.set(Key::RightShift, (mods & GLFW_MOD_SHIFT) != 0);
+        keys[Key::LeftShift] = ((mods & GLFW_MOD_SHIFT) != 0);
+        keys[Key::RightShift] = ((mods & GLFW_MOD_SHIFT) != 0);
 
-        keys.set(Key::LeftControl, (mods & GLFW_MOD_CONTROL) != 0);
-        keys.set(Key::RightControl, (mods & GLFW_MOD_CONTROL) != 0);
+        keys[Key::LeftControl] = ((mods & GLFW_MOD_CONTROL) != 0);
+        keys[Key::RightControl] = ((mods & GLFW_MOD_CONTROL) != 0);
 
-        keys.set(Key::LeftAlt, (mods & GLFW_MOD_ALT) != 0);
-        keys.set(Key::RightAlt, (mods & GLFW_MOD_ALT) != 0);
+        keys[Key::LeftAlt] = ((mods & GLFW_MOD_ALT) != 0);
+        keys[Key::RightAlt] = ((mods & GLFW_MOD_ALT) != 0);
 
-        keys.set(Key::LeftSuper, (mods & GLFW_MOD_SUPER) != 0);
-        keys.set(Key::RightSuper, (mods & GLFW_MOD_SUPER) != 0);
+        keys[Key::LeftSuper] = ((mods & GLFW_MOD_SUPER) != 0);
+        keys[Key::RightSuper] = ((mods & GLFW_MOD_SUPER) != 0);
     }
 
 
