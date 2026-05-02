@@ -3,7 +3,7 @@
 
 namespace graphics::engine { struct AppData; }
 
-namespace graphics::ui::entity_list
+namespace graphics::ui
 {
 	
 	void draw_entity_list(engine::AppData* p_data);

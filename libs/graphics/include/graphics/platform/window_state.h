@@ -3,15 +3,12 @@
 
 #include <graphics/platform/gl_includes.h>
 
-namespace graphics::platform::window_state
+namespace graphics::platform
 {
 
     struct WindowState
     {
-        float aspect() const
-        {
-            return float(width) / float(height);
-        }
+        float aspect() const;
 
         GLFWwindow* pHandle{ nullptr };
         int height{ 768 };

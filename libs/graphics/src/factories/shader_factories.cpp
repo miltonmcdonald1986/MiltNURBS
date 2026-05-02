@@ -3,7 +3,7 @@
 #include <format>
 #include <fstream>
 
-namespace
+namespace graphics::factories
 {
 
 	std::expected<GLuint, std::string> compile_shader(GLenum shader_type, const char* shader_source)
@@ -17,9 +17,9 @@ namespace
 		if (!success)
 		{
 			glGetShaderInfoLog(shader, 512, NULL, infoLog);
-			std::string shaderTypeStr = (shader_type == GL_VERTEX_SHADER)	? "VERTEX" : 
-										(shader_type == GL_FRAGMENT_SHADER)	? "FRAGMENT" : 
-										"UNKNOWN";
+			std::string shaderTypeStr = (shader_type == GL_VERTEX_SHADER) ? "VERTEX" :
+				(shader_type == GL_FRAGMENT_SHADER) ? "FRAGMENT" :
+				"UNKNOWN";
 			return std::unexpected(std::format("ERROR::SHADER::{}::COMPILATION_FAILED\n{}\n", shaderTypeStr, infoLog));
 		}
 
@@ -72,11 +72,6 @@ namespace
 
 		return *shader_program_result;
 	}
-
-}
-
-namespace graphics::factories::shader_factories
-{
 
 	std::expected<GLuint, std::string> create_basic_shader()
 	{

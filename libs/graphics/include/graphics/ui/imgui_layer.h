@@ -3,7 +3,7 @@
 
 struct GLFWwindow;
 
-namespace graphics::ui::imgui_layer
+namespace graphics::ui
 {
 	
 	void begin_imgui_frame();

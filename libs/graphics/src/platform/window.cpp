@@ -2,15 +2,7 @@
 
 #include <graphics/platform/glfw_callbacks.h>
 
-using graphics::engine::AppData;
-using graphics::platform::glfw_callbacks::glfw_cursor_pos_callback;
-using graphics::platform::glfw_callbacks::glfw_error_callback;
-using graphics::platform::glfw_callbacks::glfw_framebuffer_size_callback;
-using graphics::platform::glfw_callbacks::glfw_key_callback;
-using graphics::platform::glfw_callbacks::glfw_mouse_button_callback;
-using graphics::platform::glfw_callbacks::glfw_scroll_callback;
-
-namespace graphics::platform::window
+namespace graphics::platform
 {
 
     Window::~Window()
@@ -18,7 +10,7 @@ namespace graphics::platform::window
         terminate_glfw();
     }
 
-    std::expected<void, std::string> Window::init_glfw(AppData* p_app, int gl_version_major, int gl_version_minor, int gl_profile)
+    std::expected<void, std::string> Window::init_glfw(engine::AppData* p_app, int gl_version_major, int gl_version_minor, int gl_profile)
     {
         glfwSetErrorCallback(glfw_error_callback);
 

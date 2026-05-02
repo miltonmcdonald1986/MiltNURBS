@@ -6,7 +6,7 @@
 
 #include <graphics/platform/gl_includes.h>
 
-namespace graphics::ui::imgui_layer
+namespace graphics::ui
 {
 	
     void begin_imgui_frame()
@@ -63,4 +63,4 @@ namespace graphics::ui::imgui_layer
         ImGui::DestroyContext();
     }
 
-} // namespace graphics::ui::imgui_layer
+}

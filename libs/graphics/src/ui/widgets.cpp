@@ -15,16 +15,7 @@
 #include <graphics/rendering/renderer.h>
 #include <graphics/scene/scene.h>
 
-using graphics::components::shake::Shake;
-using graphics::components::tags::Selected;
-using graphics::components::tags::Shakeable;
-using graphics::components::shake::ShakeOnce;
-using graphics::components::transform::Transform;
-using graphics::engine::AppData;
-using graphics::rendering::renderer::Renderer;
-using graphics::scene::Scene;
-
-namespace graphics::ui::widgets
+namespace graphics::ui
 {
 
     void draw_flash_widget(engine::AppData* p_data)
@@ -32,7 +23,7 @@ namespace graphics::ui::widgets
         if (!p_data)
             return;
 
-        Scene* p_scene = p_data->p_active_scene;
+        scene::Scene* p_scene = p_data->p_active_scene;
         if (!p_scene)
             return;
 
@@ -53,7 +44,7 @@ namespace graphics::ui::widgets
         if (!p_data)
             return;
 
-        Scene* p_scene = p_data->p_active_scene;
+        scene::Scene* p_scene = p_data->p_active_scene;
         if (!p_scene)
             return;
 
@@ -74,7 +65,7 @@ namespace graphics::ui::widgets
         if (!p_data)
             return;
 
-        Renderer* p_renderer = p_data->p_renderer;
+        rendering::Renderer* p_renderer = p_data->p_renderer;
         if (!p_renderer)
             return;
 
@@ -90,7 +81,7 @@ namespace graphics::ui::widgets
         if (!p_data)
             return;
 
-        Scene* p_scene = p_data->p_active_scene;
+        scene::Scene* p_scene = p_data->p_active_scene;
         if (!p_scene)
             return;
 
@@ -99,7 +90,7 @@ namespace graphics::ui::widgets
         ImGui::SetNextWindowSize(ImVec2(300, 0), ImGuiCond_FirstUseEver);
         ImGui::Begin("Shake Settings");
 
-        auto view = reg.view<Shake>();
+        auto view = reg.view<components::Shake>();
         for (auto [entity, shake] : view.each())
         {
             std::string label = "entity " + std::to_string((uint32_t)entity);
@@ -120,7 +111,7 @@ namespace graphics::ui::widgets
 
     void draw_shake_once_widget(engine::AppData* p_data)
     {
-        Scene* p_scene = p_data->p_active_scene;
+        scene::Scene* p_scene = p_data->p_active_scene;
         if (!p_scene)
             return;
 
@@ -129,7 +120,7 @@ namespace graphics::ui::widgets
         ImGui::SetNextWindowSize(ImVec2(300, 0), ImGuiCond_FirstUseEver);
         ImGui::Begin("Shake Once");
 
-        auto view = reg.view<Transform, Shakeable>();
+        auto view = reg.view<components::Transform, components::Shakeable>();
 
         for (auto [entity, tform] : view.each())
         {
@@ -147,14 +138,13 @@ namespace graphics::ui::widgets
 
             if (ImGui::Button((base + " shake").c_str()))
             {
-                ShakeOnce s{};
+                components::ShakeOnce s{};
                 s.duration = duration;
                 s.time_left = duration;
                 s.intensity = intensity;
                 s.speed = speed;
-                //s.base_position = tform.position;
 
-                reg.emplace_or_replace<ShakeOnce>(entity, s);
+                reg.emplace_or_replace<components::ShakeOnce>(entity, s);
             }
 
             ImGui::Separator();

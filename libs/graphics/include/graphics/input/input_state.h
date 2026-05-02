@@ -10,18 +10,11 @@ namespace graphics::input
 
 	struct InputState 
 	{
+		void reset_frame_accumulators();
+
 		input::MouseState mouse;
 		input::ScrollState scroll;
 		input::KeyState keys;
-
-		// Called once per frame
-		void reset_frame_accumulators() 
-		{
-			scroll.x = 0.0f;
-			scroll.y = 0.0f;
-			mouse.dx = 0.0;
-			mouse.dy = 0.0;
-		}
 	};
 
 }

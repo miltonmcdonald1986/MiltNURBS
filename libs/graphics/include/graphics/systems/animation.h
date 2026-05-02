@@ -5,7 +5,7 @@
 
 #include <glm/glm.hpp>
 
-namespace graphics::systems::animation
+namespace graphics::systems
 {
 
 	void update_flash(entt::registry& reg, float dt);

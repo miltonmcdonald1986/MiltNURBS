@@ -1,14 +1,11 @@
 #include <graphics/mesh/mesh_factory_backend.h>
 
-using graphics::components::mesh_gl::MeshGL;
-using graphics::mesh::vertex_layout::VertexLayout;
-
-namespace graphics::mesh::mesh_factory_backend
+namespace graphics::mesh
 {
 
-    std::expected<MeshGL, std::string> create_indexed_mesh_gl_layout(std::span<const float> vertices, std::span<const unsigned int> indices, const VertexLayout& layout, GLenum primitive)
+    std::expected<components::MeshGL, std::string> create_indexed_mesh_gl_layout(std::span<const float> vertices, std::span<const unsigned int> indices, const VertexLayout& layout, GLenum primitive)
     {
-        MeshGL mesh{};
+        components::MeshGL mesh{};
         mesh.primitive = primitive;
         mesh.indexCount = static_cast<GLsizei>(indices.size());
 
@@ -58,10 +55,8 @@ namespace graphics::mesh::mesh_factory_backend
         return mesh;
     }
 
-    std::expected<MeshGL, std::string> create_indexed_mesh_gl_pos_only(std::span<const float> vertices, std::span<const unsigned int> indices, GLint componentsPerVertex, GLenum primitive)
+    std::expected<components::MeshGL, std::string> create_indexed_mesh_gl_pos_only(std::span<const float> vertices, std::span<const unsigned int> indices, GLint componentsPerVertex, GLenum primitive)
     {
-        using namespace graphics::mesh::vertex_layout;
-
         VertexLayout layout{};
         layout.stride = componentsPerVertex * sizeof(float);
 
@@ -74,9 +69,9 @@ namespace graphics::mesh::mesh_factory_backend
         return create_indexed_mesh_gl_layout(vertices, indices, layout, primitive);
     }
 
-    std::expected<graphics::components::mesh_gl::MeshGL, std::string> graphics::mesh::mesh_factory_backend::create_mesh_gl_layout(std::span<const float> vertices, const graphics::mesh::vertex_layout::VertexLayout& layout, GLenum primitive)
+    std::expected<components::MeshGL, std::string> create_mesh_gl_layout(std::span<const float> vertices, const VertexLayout& layout, GLenum primitive)
     {
-        MeshGL mesh{};
+        components::MeshGL mesh{};
         mesh.primitive = primitive;
 
         // Compute vertex count
@@ -123,10 +118,8 @@ namespace graphics::mesh::mesh_factory_backend
         return mesh;
     }
 
-    std::expected<MeshGL, std::string> create_mesh_gl_pos_only(std::span<const float> vertices, GLint componentsPerVertex, GLenum primitive)
+    std::expected<components::MeshGL, std::string> create_mesh_gl_pos_only(std::span<const float> vertices, GLint componentsPerVertex, GLenum primitive)
     {
-        using namespace graphics::mesh::vertex_layout;
-
         VertexLayout layout{};
         layout.stride = componentsPerVertex * sizeof(float);
         layout.attributes.push_back({
@@ -138,4 +131,4 @@ namespace graphics::mesh::mesh_factory_backend
         return create_mesh_gl_layout(vertices, layout, primitive);
     }
 
-} // namespace graphics::mesh::mesh_factory_backend
+}

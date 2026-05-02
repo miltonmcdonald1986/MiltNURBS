@@ -8,12 +8,7 @@
 #include <graphics/components/transform.h>
 #include <graphics/components/world_matrix.h>
 
-using graphics::components::shake::Shake;
-using graphics::components::shake::ShakeOnce;
-using graphics::components::transform::Transform;
-using graphics::components::world_matrix::WorldMatrix;
-
-namespace graphics::systems::animation
+namespace graphics::systems
 {
 
     void update_flash(entt::registry& reg, float dt)
@@ -25,7 +20,7 @@ namespace graphics::systems::animation
 
     void update_shake(entt::registry& reg, float dt)
     {
-        auto view = reg.view<WorldMatrix, Shake>();
+        auto view = reg.view<components::WorldMatrix, components::Shake>();
         for (auto [e, wm, shake] : view.each())
         {
             shake.t += dt * shake.speed;
@@ -41,15 +36,15 @@ namespace graphics::systems::animation
 
     void update_shake_base_world(entt::registry& reg, entt::entity e, const glm::mat4& world_matrix)
     {
-        if (Shake* shake = reg.try_get<Shake>(e))
+        if (components::Shake* shake = reg.try_get<components::Shake>(e))
             shake->base_world = world_matrix;
-        else if (ShakeOnce* shake_once = reg.try_get<ShakeOnce>(e))
+        else if (components::ShakeOnce* shake_once = reg.try_get<components::ShakeOnce>(e))
             shake_once->base_world = world_matrix;
     }
 
     void update_shake_once(entt::registry& reg, float dt)
     {
-        auto view = reg.view<WorldMatrix, ShakeOnce>();
+        auto view = reg.view<components::WorldMatrix, components::ShakeOnce>();
         for (auto [e, wm, shake] : view.each())
         {
             // Countdown
@@ -57,7 +52,7 @@ namespace graphics::systems::animation
             if (shake.time_left <= 0.f)
             {
                 // Restore original position
-                reg.remove<ShakeOnce>(e);
+                reg.remove<components::ShakeOnce>(e);
                 continue;
             }
 
@@ -75,4 +70,4 @@ namespace graphics::systems::animation
     }
 
 
-} // namespace graphics::systems::animation
+}

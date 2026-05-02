@@ -3,7 +3,7 @@
 
 #include <graphics/platform/gl_includes.h>
 
-namespace graphics::components::shader
+namespace graphics::components
 {
 
 	struct Shader

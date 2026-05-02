@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_PLATFORM_TIME_H
 #define GRAPHICS_PLATFORM_TIME_H
 
-namespace graphics::platform::time
+namespace graphics::platform
 {
 
 	struct Time

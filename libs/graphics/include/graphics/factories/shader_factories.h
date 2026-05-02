@@ -7,7 +7,7 @@
 
 #include <graphics/platform/gl_includes.h>
 
-namespace graphics::factories::shader_factories
+namespace graphics::factories
 {
 
 	/// <summary>

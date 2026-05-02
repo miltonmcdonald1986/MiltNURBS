@@ -10,7 +10,7 @@
 // Forward declarations
 namespace graphics::engine { struct AppData; }
 
-namespace graphics::platform::window
+namespace graphics::platform
 {
 
 	struct Window
@@ -22,8 +22,8 @@ namespace graphics::platform::window
 		void swap_buffers();
 		void terminate_glfw();
 		
-		graphics::app::window_config::WindowConfig window_config{};
-		graphics::platform::window_state::WindowState window_state{};
+		WindowConfig window_config{};
+		WindowState window_state{};
 	};
 
 }

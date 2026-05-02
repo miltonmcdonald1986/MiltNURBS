@@ -3,7 +3,7 @@
 
 #include <graphics/platform/gl_includes.h>
 
-namespace graphics::components::mesh_gl
+namespace graphics::components
 {
 
     struct MeshGL 

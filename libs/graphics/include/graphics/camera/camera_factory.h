@@ -19,7 +19,7 @@ namespace graphics::camera
 	{
 		Camera camera{};
 		CameraController controller{};
-		components::transform::Transform transform{ components::transform::Transform(glm::vec3(0.f, 0.f, 5.f), glm::vec3(0.f), glm::vec3(1.f)) };
+		components::Transform transform{ components::Transform(glm::vec3(0.f, 0.f, 5.f), glm::vec3(0.f), glm::vec3(1.f)) };
 		OrthographicCamera orthographic{};
 		PerspectiveCamera perspective{};
 	};

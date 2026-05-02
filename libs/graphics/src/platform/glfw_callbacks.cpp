@@ -6,20 +6,14 @@
 #include <graphics/input/glfw_key.h>
 #include <graphics/platform/window.h>
 
-using graphics::engine::AppData;
-using graphics::input::Key;
-using graphics::input::translate_glfw_key;
-using graphics::input::translate_glfw_mouse_button;
-using graphics::platform::window::Window;
-
-namespace graphics::platform::glfw_callbacks
+namespace graphics::platform
 {
 
     void glfw_cursor_pos_callback(GLFWwindow* p_window, double x, double y) 
     {
         static bool first_time = true;
 
-        AppData* p_data = static_cast<AppData*>(glfwGetWindowUserPointer(p_window));
+        engine::AppData* p_data = static_cast<engine::AppData*>(glfwGetWindowUserPointer(p_window));
         if (!p_data)
             return;
 
@@ -46,7 +40,7 @@ namespace graphics::platform::glfw_callbacks
 
     void glfw_framebuffer_size_callback(GLFWwindow* p_window, int w, int h)
     {
-        AppData* p_data = static_cast<AppData*>(glfwGetWindowUserPointer(p_window));
+        engine::AppData* p_data = static_cast<engine::AppData*>(glfwGetWindowUserPointer(p_window));
         if (!p_data)
             return;
 
@@ -62,14 +56,16 @@ namespace graphics::platform::glfw_callbacks
 
     void glfw_key_callback(GLFWwindow* p_window, int glfw_key, int /*scancode*/, int action, int mods)
     {
-        AppData* p_data = static_cast<AppData*>(glfwGetWindowUserPointer(p_window));
+        using input::Key;
+
+        engine::AppData* p_data = static_cast<engine::AppData*>(glfwGetWindowUserPointer(p_window));
         if (!p_data)
             return;
 
         auto& keys = p_data->input.keys;
 
         // 1. Translate GLFW key → engine Key enum
-        Key key = translate_glfw_key(glfw_key);
+        Key key = input::translate_glfw_key(glfw_key);
 
         // 2. Update key state (ignore Unknown)
         if (key != Key::Unknown)
@@ -91,7 +87,9 @@ namespace graphics::platform::glfw_callbacks
 
     void glfw_mouse_button_callback(GLFWwindow* p_window, int button, int action, int mods)
     {
-        AppData* p_data = static_cast<AppData*>(glfwGetWindowUserPointer(p_window));
+        using input::Key;
+
+        engine::AppData* p_data = static_cast<engine::AppData*>(glfwGetWindowUserPointer(p_window));
         if (!p_data)
             return;
 
@@ -110,7 +108,7 @@ namespace graphics::platform::glfw_callbacks
         }
 
         // 2. Update mouse buttons in KeyState too (optional but recommended)
-        Key mouse_key = translate_glfw_mouse_button(button);
+        Key mouse_key = input::translate_glfw_mouse_button(button);
         if (mouse_key != Key::Unknown)
             keys[mouse_key] = is_down;
 
@@ -131,7 +129,7 @@ namespace graphics::platform::glfw_callbacks
 
     void glfw_scroll_callback(GLFWwindow* p_window, double xoff, double yoff) 
     {
-        AppData* p_data = static_cast<AppData*>(glfwGetWindowUserPointer(p_window));
+        engine::AppData* p_data = static_cast<engine::AppData*>(glfwGetWindowUserPointer(p_window));
         if (!p_data)
             return;
 
@@ -139,4 +137,4 @@ namespace graphics::platform::glfw_callbacks
         p_data->input.scroll.y += static_cast<float>(yoff);
     }
 
-} // namespace graphics::glfw_callbacks
+}

@@ -3,7 +3,7 @@
 
 #include <graphics/platform/gl_includes.h>
 
-namespace graphics::systems::gl_state
+namespace graphics::systems
 {
 
     struct GLState

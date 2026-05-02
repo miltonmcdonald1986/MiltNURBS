@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_COMPONENTS_TAGS_H
 #define GRAPHICS_COMPONENTS_TAGS_H
 
-namespace graphics::components::tags
+namespace graphics::components
 {
 	
 	struct Selected {};

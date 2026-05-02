@@ -14,53 +14,35 @@
 #include <graphics/ui/imgui_layer.h>
 #include <graphics/ui/inspector.h>
 
-using graphics::camera::update_camera_system;
-using graphics::engine::AppData;
-using graphics::input::update_input_system;
-using graphics::platform::window::Window;
-using graphics::rendering::renderer::Renderer;
-using graphics::scene::Scene;
-using graphics::systems::animation::update_flash;
-using graphics::systems::animation::update_shake;
-using graphics::systems::animation::update_shake_base_world;
-using graphics::systems::animation::update_shake_once;
-using graphics::systems::ecs_observers::register_transform_observers;
-using graphics::systems::transform::update_transform_system;
-using graphics::ui::imgui_layer::begin_imgui_frame;
-using graphics::ui::imgui_layer::end_imgui_frame;
-using graphics::ui::imgui_layer::init_imgui;
-using graphics::ui::imgui_layer::terminate_imgui;
-using graphics::ui::inspector::register_inspectors;
-
-namespace
+namespace graphics::engine
 {
 
     struct ImGuiEndFrameGuard
     {
         ~ImGuiEndFrameGuard()
         {
-            end_imgui_frame();
+            ui::end_imgui_frame();
             p_window->swap_buffers();
         }
 
-        Window* p_window;
+        platform::Window* p_window;
     };
 
     struct ImGuiTerminateGuard
     {
         ~ImGuiTerminateGuard()
         {
-            terminate_imgui();
+            ui::terminate_imgui();
         }
     };
 
-    graphics::engine::Status init(AppData& data)
+    Status init(AppData& data)
     {
-        Window* p_window = data.p_window;
+        platform::Window* p_window = data.p_window;
         if (!p_window)
             return std::unexpected(ERR("No window found", "Engine"));
 
-        Renderer* p_renderer = data.p_renderer;
+        rendering::Renderer* p_renderer = data.p_renderer;
         if (!p_renderer)
             return std::unexpected(ERR("No renderer found", "Engine"));
 
@@ -73,17 +55,17 @@ namespace
         if (auto result = p_renderer->init(w, h); !result)
             return std::unexpected(ERR("Failed to initialize OpenGL state", "Engine"));
 
-        init_imgui(p_window->window_state.pHandle);
+        ui::init_imgui(p_window->window_state.pHandle);
 
-        register_inspectors();
-        register_transform_observers(&data);
+        ui::register_inspectors();
+        systems::register_transform_observers(&data);
 
         return {};
     }
 
-    graphics::engine::Status loop(AppData& data, graphics::engine::UpdateFn update_fn)
+    Status loop(AppData& data, UpdateFn update_fn)
     {
-        Window* p_window = data.p_window;
+        platform::Window* p_window = data.p_window;
         if (!p_window)
             return {};
 
@@ -91,31 +73,31 @@ namespace
         {
             data.time.update();
             p_window->poll_events();
-            
+
             ImGuiEndFrameGuard imgui_frame_ender{ p_window };
-            begin_imgui_frame();
+            ui::begin_imgui_frame();
 
             // USER SYSTEMS
             if (auto result = update_fn(&data); !result)
                 return result;
 
-            Renderer* p_renderer = data.p_renderer;
+            rendering::Renderer* p_renderer = data.p_renderer;
             if (!p_renderer)
                 continue;
 
-            Scene* p_scene = data.p_active_scene;
+            scene::Scene* p_scene = data.p_active_scene;
             if (!p_scene)
                 continue;
 
             // ENGINE SYSTEMS (authoritative)
-            update_input_system(p_scene->reg);
-            update_transform_system(p_scene->reg);
+            input::update_input_system(p_scene->reg);
+            systems::update_transform_system(p_scene->reg);
 
             // ENGINE SYSTEMS (run-time effects)
-            update_camera_system(p_scene->reg, data.time.dt);
-            update_flash(p_scene->reg, data.time.dt);
-            update_shake(p_scene->reg, data.time.dt);
-            update_shake_once(p_scene->reg, data.time.dt);
+            camera::update_camera_system(p_scene->reg, data.time.dt);
+            systems::update_flash(p_scene->reg, data.time.dt);
+            systems::update_shake(p_scene->reg, data.time.dt);
+            systems::update_shake_once(p_scene->reg, data.time.dt);
 
             if (auto result = p_renderer->update(p_scene); !result)
                 return result;
@@ -125,23 +107,18 @@ namespace
 
         return {};
     }
-
-}
-
-namespace graphics::engine
-{
 	
     Status run(InitFn init_fn, UpdateFn update_fn)
     {
         AppData data{};
 
-        Renderer renderer{};
+        rendering::Renderer renderer{};
         data.p_renderer = &renderer;
 
-        Scene scene{};
+        scene::Scene scene{};
         data.p_active_scene = &scene;
 
-        Window window{};
+        platform::Window window{};
         data.p_window = &window;
 
         ImGuiTerminateGuard imgui_terminator{};

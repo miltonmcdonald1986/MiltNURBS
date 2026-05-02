@@ -5,18 +5,12 @@
 #include <graphics/mesh/vertex_layout.h>
 #include <graphics/mesh/mesh_factory_backend.h>
 
-using graphics::components::mesh_gl::MeshGL;
-using graphics::mesh::vertex_layout::VertexLayout;
-using graphics::mesh::mesh_factory_backend::create_indexed_mesh_gl_layout;
-using graphics::mesh::mesh_factory_backend::create_mesh_gl_layout;
-using graphics::mesh::mesh_factory_backend::create_mesh_gl_pos_only;
-
-namespace graphics::factories::mesh_factories
+namespace graphics::factories
 {
 
-	std::expected<MeshGL, std::string> create_rainbow_triangle_mesh()
+	std::expected<components::MeshGL, std::string> create_rainbow_triangle_mesh()
 	{
-        VertexLayout PosColorLayout{
+        mesh::VertexLayout PosColorLayout{
             .stride = 6 * sizeof(float), // 3 pos + 3 color
             .attributes = {
                 { 0, 3, 0 },                        // position at offset 0
@@ -35,14 +29,14 @@ namespace graphics::factories::mesh_factories
             0, 1, 2
         };
 
-        auto meshResult = create_indexed_mesh_gl_layout(vertices, indices, PosColorLayout);
+        auto meshResult = mesh::create_indexed_mesh_gl_layout(vertices, indices, PosColorLayout);
         if (!meshResult)
             return std::unexpected(std::format("Failed to create mesh: {}\n", meshResult.error()));
 
 		return *meshResult;
 	}
 
-    std::expected<components::mesh_gl::MeshGL, std::string> create_textured_cube_mesh()
+    std::expected<components::MeshGL, std::string> create_textured_cube_mesh()
     {
         // Each face has its own quad with UVs
         const float verts[] = {
@@ -95,7 +89,7 @@ namespace graphics::factories::mesh_factories
               -0.5f, -0.5f,  0.5f,  0.f, 1.f,
         };
 
-        VertexLayout layout;
+        mesh::VertexLayout layout;
         layout.stride = sizeof(float) * 5;
 
         layout.attributes.push_back({
@@ -110,10 +104,10 @@ namespace graphics::factories::mesh_factories
             /* offset     */ sizeof(float) * 3
             });
 
-        return create_mesh_gl_layout(verts, layout, GL_TRIANGLES);
+        return mesh::create_mesh_gl_layout(verts, layout, GL_TRIANGLES);
     }
 
-    std::expected<MeshGL, std::string> create_textured_quad_mesh()
+    std::expected<components::MeshGL, std::string> create_textured_quad_mesh()
     {
         // Interleaved vertex data: position (3 floats) + uv (2 floats)
         const float vertices[] =
@@ -132,7 +126,7 @@ namespace graphics::factories::mesh_factories
         };
 
         // Vertex layout: vec3 position + vec2 uv
-        VertexLayout layout;
+        mesh::VertexLayout layout;
         layout.stride = sizeof(float) * 5;
 
         layout.attributes.push_back({
@@ -147,7 +141,7 @@ namespace graphics::factories::mesh_factories
             /* offset     */ sizeof(float) * 3
             });
 
-        return create_indexed_mesh_gl_layout(
+        return mesh::create_indexed_mesh_gl_layout(
             std::span<const float>(vertices, std::size(vertices)),
             std::span<const unsigned int>(indices, std::size(indices)),
             layout,
@@ -155,10 +149,10 @@ namespace graphics::factories::mesh_factories
         );
     }
 
-    std::expected<MeshGL, std::string> create_textured_triangle_mesh()
+    std::expected<components::MeshGL, std::string> create_textured_triangle_mesh()
     {
         // Position + UV layout: 3 floats pos, 2 floats uv
-        VertexLayout PosUvLayout{
+        mesh::VertexLayout PosUvLayout{
             .stride = 5 * sizeof(float),
             .attributes = {
                 { 0, 3, 0 },                        // position at offset 0
@@ -173,10 +167,10 @@ namespace graphics::factories::mesh_factories
              0.0f,  0.5f, 0.0f,   0.5f, 1.0f
         };
 
-        return create_mesh_gl_layout(vertices, PosUvLayout, GL_TRIANGLES);
+        return mesh::create_mesh_gl_layout(vertices, PosUvLayout, GL_TRIANGLES);
     }
 
-    std::expected<MeshGL, std::string> create_triangle_mesh()
+    std::expected<components::MeshGL, std::string> create_triangle_mesh()
     {
         // 3 vertices, each with 3 floats (x, y, z)
         static constexpr float vertices[] = {
@@ -185,7 +179,7 @@ namespace graphics::factories::mesh_factories
              0.0f,  0.5f, 0.0f
         };
 
-        return create_mesh_gl_pos_only(vertices, 3, GL_TRIANGLES);
+        return mesh::create_mesh_gl_pos_only(vertices, 3, GL_TRIANGLES);
     }
 
-} // namespace graphics::factories::mesh_factories
+}

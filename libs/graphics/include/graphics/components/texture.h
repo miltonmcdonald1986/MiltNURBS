@@ -3,10 +3,11 @@
 
 #include <graphics/platform/gl_includes.h>
 
-namespace graphics::components::texture
+namespace graphics::components
 {
 
-    struct Texture {
+    struct Texture 
+    {
         GLuint id = 0;
         int width = 0;
         int height = 0;

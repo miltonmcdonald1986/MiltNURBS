@@ -2,7 +2,7 @@
 
 #include <graphics/platform/gl_includes.h>
 
-namespace graphics::platform::time
+namespace graphics::platform
 {
 
     void Time::update()

@@ -8,7 +8,7 @@
 #include <graphics/scene/scene.h>
 #include <graphics/systems/gl_state.h>
 
-namespace graphics::rendering::renderer
+namespace graphics::rendering
 {
 
 	struct Renderer
@@ -16,7 +16,7 @@ namespace graphics::rendering::renderer
 		engine::Status init(int framebuffer_width, int framebuffer_height);
 		engine::Status update(scene::Scene* p_scene);
 
-		systems::gl_state::GLState gl_state;
+		systems::GLState gl_state;
 	};
 
 }

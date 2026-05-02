@@ -5,8 +5,8 @@
 #include <graphics/platform/time.h>
 
 // Forward declarations
-namespace graphics::platform::window { struct Window; }
-namespace graphics::rendering::renderer { struct Renderer; }
+namespace graphics::platform { struct Window; }
+namespace graphics::rendering { struct Renderer; }
 namespace graphics::scene { struct Scene; }
 
 namespace graphics::engine
@@ -15,9 +15,9 @@ namespace graphics::engine
 	struct AppData
 	{
 		input::InputState input{};
-		platform::time::Time time{};
-		platform::window::Window* p_window{ nullptr };
-		rendering::renderer::Renderer* p_renderer{ nullptr };
+		platform::Time time{};
+		platform::Window* p_window{ nullptr };
+		rendering::Renderer* p_renderer{ nullptr };
 		scene::Scene* p_active_scene{ nullptr };
 	};
 

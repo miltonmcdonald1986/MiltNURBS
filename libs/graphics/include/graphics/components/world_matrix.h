@@ -3,7 +3,7 @@
 
 #include <glm/glm.hpp>
 
-namespace graphics::components::world_matrix
+namespace graphics::components
 {
 
 	struct WorldMatrix

@@ -3,7 +3,7 @@
 
 namespace graphics::engine { struct AppData; }
 
-namespace graphics::ui::widgets
+namespace graphics::ui
 {
 
 	void draw_flash_widget(engine::AppData* p_data);

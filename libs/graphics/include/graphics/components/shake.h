@@ -3,7 +3,7 @@
 
 #include <glm/glm.hpp>
 
-namespace graphics::components::shake
+namespace graphics::components
 {
 
     struct Shake

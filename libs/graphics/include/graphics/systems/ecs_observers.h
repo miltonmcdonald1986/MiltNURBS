@@ -6,11 +6,11 @@
 // Forward declarations
 namespace graphics::engine { struct AppData; }
 
-namespace graphics::systems::ecs_observers
+namespace graphics::systems
 {
 
-	graphics::engine::AppData* get_app(const entt::registry& p_reg);
-	void register_transform_observers(graphics::engine::AppData* p_data);
+	engine::AppData* get_app(const entt::registry& p_reg);
+	void register_transform_observers(engine::AppData* p_data);
 
 }
 

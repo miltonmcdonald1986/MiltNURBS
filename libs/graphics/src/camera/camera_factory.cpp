@@ -11,7 +11,7 @@ namespace graphics::camera
 	{
 		reg.emplace<Camera>(ent, config.camera);
 		reg.emplace<CameraController>(ent, config.controller);
-		reg.emplace<components::transform::Transform>(ent, config.transform);
+		reg.emplace<components::Transform>(ent, config.transform);
 		reg.emplace<CameraControllerState>(ent, CameraControllerState{});
 		reg.emplace<CameraMatrices>(ent, CameraMatrices{});
 		switch (config.camera.type)

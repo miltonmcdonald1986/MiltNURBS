@@ -5,13 +5,13 @@
 
 #include "vertex_attribute.h"
 
-namespace graphics::mesh::vertex_layout
+namespace graphics::mesh
 {
 
     struct VertexLayout
     {
-        std::size_t                                     stride;     // bytes per vertex
-        std::vector<vertex_attribute::VertexAttribute>  attributes; // list of attributes
+        size_t stride;  // bytes per vertex
+        std::vector<VertexAttribute> attributes;    // list of attributes
     };
 
 }

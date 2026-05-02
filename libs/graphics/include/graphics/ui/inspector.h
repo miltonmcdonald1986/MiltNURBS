@@ -7,7 +7,7 @@
 
 namespace graphics::engine { struct AppData; }
 
-namespace graphics::ui::inspector
+namespace graphics::ui
 {
 
 	// A function that draws UI for a component on a specific entity

@@ -3,7 +3,7 @@
 
 #include <graphics/platform/gl_includes.h>
 
-namespace graphics::platform::glfw_callbacks
+namespace graphics::platform
 {
 
 	void glfw_cursor_pos_callback(GLFWwindow* window, double xpos, double ypos);

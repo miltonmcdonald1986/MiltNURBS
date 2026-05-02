@@ -7,7 +7,7 @@
 
 #include <graphics/components/color.h>
 
-namespace graphics::factories::prefab_factories
+namespace graphics::factories
 {
 
 	/// <summary>

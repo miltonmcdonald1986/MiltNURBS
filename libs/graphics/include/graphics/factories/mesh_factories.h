@@ -6,7 +6,7 @@
 
 #include <graphics/components/mesh_gl.h>
 
-namespace graphics::factories::mesh_factories
+namespace graphics::factories
 {
 
 	/// <summary>
@@ -30,9 +30,9 @@ namespace graphics::factories::mesh_factories
 	///   • MeshGL on success
 	///   • std::string error message on failure
 	/// </returns>
-	std::expected<components::mesh_gl::MeshGL, std::string> create_rainbow_triangle_mesh();
+	std::expected<components::MeshGL, std::string> create_rainbow_triangle_mesh();
 
-	std::expected<components::mesh_gl::MeshGL, std::string> create_textured_cube_mesh();
+	std::expected<components::MeshGL, std::string> create_textured_cube_mesh();
 
 	/// <summary>
 	/// Creates a textured quad mesh using position + UV vertex data.
@@ -52,7 +52,7 @@ namespace graphics::factories::mesh_factories
 	/// On success, contains a MeshGL with VAO, VBO, EBO, and index count.
 	/// On failure, contains a descriptive error message.
 	/// </returns>
-	std::expected<components::mesh_gl::MeshGL, std::string> create_textured_quad_mesh();
+	std::expected<components::MeshGL, std::string> create_textured_quad_mesh();
 
 	/// <summary>
 	/// Creates a MeshGL representing a triangle with position and UV attributes,
@@ -79,7 +79,7 @@ namespace graphics::factories::mesh_factories
 	///   • MeshGL on success
 	///   • std::string error message on failure
 	/// </returns>
-	std::expected<components::mesh_gl::MeshGL, std::string> create_textured_triangle_mesh();
+	std::expected<components::MeshGL, std::string> create_textured_triangle_mesh();
 
 	/// <summary>
 	/// Creates a MeshGL representing a basic triangle with position‑only vertices.
@@ -103,7 +103,7 @@ namespace graphics::factories::mesh_factories
 	///   • MeshGL on success
 	///   • std::string error message on failure
 	/// </returns>
-	std::expected<components::mesh_gl::MeshGL, std::string> create_triangle_mesh();
+	std::expected<components::MeshGL, std::string> create_triangle_mesh();
 
 }
 

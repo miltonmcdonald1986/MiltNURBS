@@ -14,14 +14,7 @@
 #include <graphics/platform/gl_includes.h>
 #include <graphics/utils/math_utils.h>
 
-using graphics::camera::compute_projection;
-using graphics::components::mesh_gl::MeshGL;
-using graphics::components::shader::Shader;
-using graphics::components::texture::Texture;
-using graphics::components::world_matrix::WorldMatrix;
-using graphics::scene::Scene;
-
-namespace graphics::rendering::renderer
+namespace graphics::rendering
 {
 
     glm::vec4 compute_final_color(const components::Color& color, const components::Flash* flash)
@@ -55,7 +48,7 @@ namespace graphics::rendering::renderer
         return {};
     }
 
-    engine::Status Renderer::update(Scene* p_scene)
+    engine::Status Renderer::update(scene::Scene* p_scene)
     {
         if (!p_scene)
             return std::unexpected(ERR("No active scene found", "Rendering"));
@@ -84,7 +77,7 @@ namespace graphics::rendering::renderer
         // ---------------------------------------------------------
         // 3. Render all meshes
         // ---------------------------------------------------------
-        auto ents = reg.view<Shader, MeshGL>();
+        auto ents = reg.view<components::Shader, components::MeshGL>();
         for (auto [entity, shader, mesh] : ents.each())
         {
             glUseProgram(shader.id);
@@ -99,7 +92,7 @@ namespace graphics::rendering::renderer
             }
 
             // --- Optional Texture binding ---
-            if (auto tex = reg.try_get<Texture>(entity))
+            if (auto tex = reg.try_get<components::Texture>(entity))
             {
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, tex->id);
@@ -111,7 +104,7 @@ namespace graphics::rendering::renderer
 
             // --- Upload uModel ---
             if (GLint loc = glGetUniformLocation(shader.id, "uModel"); loc >= 0)
-                glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(reg.get<WorldMatrix>(entity).value));
+                glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(reg.get<components::WorldMatrix>(entity).value));
 
             // --- Upload uView ---
             if (GLint loc = glGetUniformLocation(shader.id, "uView"); loc >= 0)

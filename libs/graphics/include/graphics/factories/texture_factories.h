@@ -6,7 +6,7 @@
 
 #include <graphics/components/texture.h>
 
-namespace graphics::factories::texture_factories
+namespace graphics::factories
 {
 	
     /// <summary>
@@ -33,7 +33,7 @@ namespace graphics::factories::texture_factories
     ///   • Texture on success
     ///   • std::string error message on failure
     /// </returns>
-    std::expected<components::texture::Texture, std::string> create_texture_from_file(const char* path);
+    std::expected<components::Texture, std::string> create_texture_from_file(const char* path);
 
 }
 

@@ -3,59 +3,24 @@
 
 #include <glm/glm.hpp>
 
-namespace graphics::components::transform
+namespace graphics::components
 {
 
     struct Transform
     {
+        Transform();
+        Transform(const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scl);
+
+        auto get_position() const -> glm::vec3;
+        auto set_position(const glm::vec3& pos) -> void;
+
+        auto get_rotation() const -> glm::vec3;
+        auto set_rotation(const glm::vec3& rot) -> void;
+
+        auto get_scale() const -> glm::vec3;
+        auto set_scale(const glm::vec3& scl) -> void;
+
         bool dirty{ false };
-
-        Transform()
-            : position(glm::vec3(1.f))
-            , rotation(glm::vec3(1.f))
-            , scale(glm::vec3(1.f))
-        {
-        }
-
-        Transform(const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scl)
-            : position(pos)
-            , rotation(rot)
-            , scale(scl)
-        {
-        }
-
-        glm::vec3 get_position() const
-        {
-            return position;
-        }
-
-        void set_position(const glm::vec3& pos)
-        {
-            position = pos;
-            dirty = true;
-        }
-
-        glm::vec3 get_rotation() const
-        {
-            return rotation;
-        }
-
-        void set_rotation(const glm::vec3& rot)
-        {
-            rotation = rot;
-            dirty = true;
-        }
-
-        glm::vec3 get_scale() const
-        {
-            return scale;
-        }
-
-        void set_scale(const glm::vec3& scl)
-        {
-            scale = scl;
-            dirty = true;
-        }
 
     private:
         glm::vec3 position  { 0.f, 0.f, 0.f };

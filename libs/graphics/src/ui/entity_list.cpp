@@ -8,19 +8,15 @@
 #include <graphics/engine/app_data.h>
 #include <graphics/scene/scene.h>
 
-using graphics::components::tags::Selected;
-using graphics::engine::AppData;
-using graphics::scene::Scene;
-
-namespace graphics::ui::entity_list
+namespace graphics::ui
 {
 
-    void draw_entity_list(AppData* p_data)
+    void draw_entity_list(engine::AppData* p_data)
     {
         if (!p_data)
             return;
 
-        Scene* p_scene = p_data->p_active_scene;
+        scene::Scene* p_scene = p_data->p_active_scene;
         if (!p_scene)
             return;
 
@@ -46,16 +42,16 @@ namespace graphics::ui::entity_list
             uint32_t id = (uint32_t)entity;
             std::string label = "Entity " + std::to_string(id);
 
-            bool is_selected = reg.all_of<Selected>(entity);
+            bool is_selected = reg.all_of<components::Selected>(entity);
 
             if (ImGui::Selectable(label.c_str(), is_selected))
             {
                 // Clear previous selection
-                for (auto e : reg.view<Selected>())
-                    reg.remove<Selected>(e);
+                for (auto e : reg.view<components::Selected>())
+                    reg.remove<components::Selected>(e);
 
                 // Select this one
-                reg.emplace<Selected>(entity);
+                reg.emplace<components::Selected>(entity);
             }
         }
 

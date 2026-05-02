@@ -3,7 +3,7 @@
 
 #include <entt/entt.hpp>
 
-namespace graphics::components::parent
+namespace graphics::components
 {
 
 	struct Parent

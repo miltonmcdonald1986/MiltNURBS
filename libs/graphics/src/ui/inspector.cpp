@@ -15,17 +15,7 @@
 #include <graphics/scene/scene.h>
 #include <graphics/systems/ecs_observers.h>
 
-using graphics::components::shake::Shake;
-using graphics::components::shake::ShakeOnce;
-using graphics::components::tags::Selected;
-using graphics::components::tags::Shakeable;
-using graphics::components::transform::Transform;
-using graphics::engine::AppData;
-using graphics::scene::Scene;
-using graphics::systems::ecs_observers::get_app;
-using graphics::ui::inspector::InspectorFn;
-
-namespace
+namespace graphics::ui
 {
 
     // ------------------------------------------------------------
@@ -39,7 +29,7 @@ namespace
 
     void draw_color_inspector(entt::registry& reg, entt::entity e)
     {
-        using graphics::components::Color;
+        using components::Color;
 
         if (Color* color = reg.try_get<Color>(e))
         {
@@ -52,9 +42,7 @@ namespace
 
     void draw_flash_inspector(entt::registry& reg, entt::entity e)
     {
-        using graphics::components::Flash;
-
-        if (Flash* flash = reg.try_get<Flash>(e))
+        if (components::Flash* flash = reg.try_get<components::Flash>(e))
         {
             if (ImGui::CollapsingHeader("Flash"))
             {
@@ -66,12 +54,12 @@ namespace
 
     void draw_shake_inspector(entt::registry& reg, entt::entity e)
     {
-        if (!reg.any_of<Shakeable>(e))
+        if (!reg.any_of<components::Shakeable>(e))
             return;
 
-        Shake* shake = reg.try_get<Shake>(e);
-        ShakeOnce* shakeOnce = reg.try_get<ShakeOnce>(e);
-        Transform& transform = reg.get<Transform>(e);
+        components::Shake* shake = reg.try_get<components::Shake>(e);
+        components::ShakeOnce* shakeOnce = reg.try_get<components::ShakeOnce>(e);
+        components::Transform& transform = reg.get<components::Transform>(e);
 
         if (ImGui::CollapsingHeader("Shake", ImGuiTreeNodeFlags_DefaultOpen))
         {
@@ -131,7 +119,7 @@ namespace
                 {
                     // Snap back to base (TransformSystem will recompute world)
                     transform.dirty = true;
-                    reg.remove<Shake>(e);
+                    reg.remove<components::Shake>(e);
                 }
 
                 ImGui::PopID();
@@ -145,7 +133,7 @@ namespace
             {
                 if (ImGui::Button("Add Continuous Shake"))
                 {
-                    auto& s = reg.emplace<Shake>(e);
+                    auto& s = reg.emplace<components::Shake>(e);
                     s.intensity = intensity;
                     s.speed = speed;
                 }
@@ -166,7 +154,7 @@ namespace
                 if (ImGui::Button("Cancel Shake Once"))
                 {
                     transform.dirty = true;
-                    reg.remove<ShakeOnce>(e);
+                    reg.remove<components::ShakeOnce>(e);
                 }
             }
             else
@@ -177,7 +165,7 @@ namespace
 
                 if (ImGui::Button("Trigger Shake Once"))
                 {
-                    auto& s = reg.emplace_or_replace<ShakeOnce>(e);
+                    auto& s = reg.emplace_or_replace<components::ShakeOnce>(e);
                     s.intensity = intensity;
                     s.duration = onceDuration;
                     s.time_left = onceDuration;
@@ -191,13 +179,13 @@ namespace
 
     void draw_transform_inspector(entt::registry& reg, entt::entity e)
     {
-        Transform* transform = reg.try_get<Transform>(e);
+        components::Transform* transform = reg.try_get<components::Transform>(e);
         if (!transform)
             return;
 
-        AppData* p_data = get_app(reg);
+        engine::AppData* p_data = systems::get_app(reg);
 
-        Scene* p_scene = p_data->p_active_scene;
+        scene::Scene* p_scene = p_data->p_active_scene;
         if (!p_scene)
             return;
 
@@ -205,7 +193,7 @@ namespace
 
         // Look up initial transform (if it exists)
         auto it = initial_transforms.find(e);
-        const Transform* initial = (it != initial_transforms.end()) ? &it->second : nullptr;
+        const components::Transform* initial = (it != initial_transforms.end()) ? &it->second : nullptr;
 
         if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
         {
@@ -219,7 +207,7 @@ namespace
             // Determine what to display
             glm::vec3 displayPos;
 
-            if (auto* shake = reg.try_get<Shake>(e))
+            if (auto* shake = reg.try_get<components::Shake>(e))
             {
                 displayPos = glm::vec3(
                     shake->base_world[3][0],
@@ -227,7 +215,7 @@ namespace
                     shake->base_world[3][2]
                 );
             }
-            else if (auto* shakeOnce = reg.try_get<ShakeOnce>(e))
+            else if (auto* shakeOnce = reg.try_get<components::ShakeOnce>(e))
             {
                 displayPos = glm::vec3(
                     shakeOnce->base_world[3][0],
@@ -287,11 +275,6 @@ namespace
         }
     }
 
-}
-
-namespace graphics::ui::inspector
-{
-
     // ------------------------------------------------------------
     // Register all inspectors
     // ------------------------------------------------------------
@@ -306,12 +289,12 @@ namespace graphics::ui::inspector
     // ------------------------------------------------------------
     // Draw Inspector Panel
     // ------------------------------------------------------------
-    void draw_inspector(AppData* p_data)
+    void draw_inspector(engine::AppData* p_data)
     {
         if (!p_data)
             return;
 
-        Scene* p_scene = p_data->p_active_scene;
+        scene::Scene* p_scene = p_data->p_active_scene;
         if (!p_scene)
             return;
 
@@ -319,7 +302,7 @@ namespace graphics::ui::inspector
 
         ImGui::Begin("Inspector");
 
-        auto view = reg.view<Selected>();
+        auto view = reg.view<components::Selected>();
         if (view.empty())
         {
             ImGui::Text("No entity selected");
