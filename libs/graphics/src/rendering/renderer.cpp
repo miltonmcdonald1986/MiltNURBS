@@ -14,6 +14,8 @@
 #include <graphics/platform/gl_includes.h>
 #include <graphics/utils/math_utils.h>
 
+inline const std::string NAMESPACE = "graphics::rendering";
+
 namespace graphics::rendering
 {
 
@@ -43,7 +45,7 @@ namespace graphics::rendering
 
         // Check for any OpenGL errors that may have occurred during initialization.
         if (glGetError() != GL_NO_ERROR)
-            return std::unexpected(ERR("Failed to init GL state", "Rendering"));
+            return std::unexpected(ERR("Failed to init GL state"));
 
         return {};
     }
@@ -51,7 +53,7 @@ namespace graphics::rendering
     engine::Status Renderer::update(scene::Scene* p_scene)
     {
         if (!p_scene)
-            return std::unexpected(ERR("No active scene found", "Rendering"));
+            return std::unexpected(ERR("No active scene found"));
 
         entt::registry& reg = p_scene->reg;
 

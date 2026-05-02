@@ -14,6 +14,8 @@
 #include <graphics/ui/imgui_layer.h>
 #include <graphics/ui/inspector.h>
 
+inline const std::string NAMESPACE = "graphics::engine";
+
 namespace graphics::engine
 {
 
@@ -40,20 +42,20 @@ namespace graphics::engine
     {
         platform::Window* p_window = data.p_window;
         if (!p_window)
-            return std::unexpected(ERR("No window found", "Engine"));
+            return std::unexpected(ERR("No window found"));
 
         rendering::Renderer* p_renderer = data.p_renderer;
         if (!p_renderer)
-            return std::unexpected(ERR("No renderer found", "Engine"));
+            return std::unexpected(ERR("No renderer found"));
 
         auto& gl_config = p_window->window_config.gl_config;
         if (auto result = p_window->init_glfw(&data, gl_config.version_major, gl_config.version_minor, gl_config.profile); !result)
-            return std::unexpected(ERR("Failed to initialize GLFW", "Engine"));
+            return std::unexpected(ERR("Failed to initialize GLFW"));
 
         int w, h;
         glfwGetFramebufferSize(p_window->window_state.pHandle, &w, &h);
         if (auto result = p_renderer->init(w, h); !result)
-            return std::unexpected(ERR("Failed to initialize OpenGL state", "Engine"));
+            return std::unexpected(ERR("Failed to initialize OpenGL state"));
 
         ui::init_imgui(p_window->window_state.pHandle);
 

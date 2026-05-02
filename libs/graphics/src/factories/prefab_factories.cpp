@@ -7,44 +7,44 @@
 namespace graphics::factories
 {
 
-    std::expected<entt::entity, std::string> create_solid_color_triangle_ent(entt::registry& reg, const components::Color& color)
+    engine::Result<entt::entity> create_solid_color_triangle_ent(entt::registry& reg, const components::Color& color)
     {
-        auto meshResult = create_triangle_mesh();
-		if (!meshResult)
-            return std::unexpected(std::format("Failed to create mesh: {}\n", meshResult.error()));
+        auto mesh_result = create_triangle_mesh();
+		if (!mesh_result)
+            return std::unexpected(mesh_result.error());
 
-        components::MeshGL mesh = *meshResult;
+        components::MeshGL mesh = *mesh_result;
 
         auto color_shader_result = create_color_shader();
         if (!color_shader_result) 
-            return std::unexpected(std::format("Failed to create shader: {}\n", color_shader_result.error()));
+            return std::unexpected(color_shader_result.error());
         
         GLuint color_shader = *color_shader_result;
         entt::entity ent_triangle = reg.create();
         reg.emplace<components::Color>(ent_triangle, color);
         reg.emplace<components::Shader>(ent_triangle, color_shader);
-		reg.emplace<components::MeshGL>(ent_triangle, *meshResult);
+		reg.emplace<components::MeshGL>(ent_triangle, *mesh_result);
 
 		return ent_triangle;
     }
 
-	std::expected<entt::entity, std::string> create_rainbow_triangle_ent(entt::registry& reg)
+	engine::Result<entt::entity> create_rainbow_triangle_ent(entt::registry& reg)
 	{
-        auto meshResult = create_rainbow_triangle_mesh();
-        if (!meshResult)
-            return std::unexpected(std::format("Failed to create mesh: {}\n", meshResult.error()));
+        auto mesh_result = create_rainbow_triangle_mesh();
+        if (!mesh_result)
+            return std::unexpected(mesh_result.error());
 
-        components::MeshGL mesh = *meshResult;
+        components::MeshGL mesh = *mesh_result;
 
         auto vertex_color_shader_result = create_vertex_color_shader();
         if (!vertex_color_shader_result) 
-            return std::unexpected(std::format("Failed to create shader: {}\n", vertex_color_shader_result.error()));
+            return std::unexpected(vertex_color_shader_result.error());
         
         GLuint vertex_color_shader = *vertex_color_shader_result;
 
         entt::entity ent_rainbow_triangle = reg.create();
         reg.emplace<components::Shader>(ent_rainbow_triangle, vertex_color_shader);
-        reg.emplace<components::MeshGL>(ent_rainbow_triangle, *meshResult);
+        reg.emplace<components::MeshGL>(ent_rainbow_triangle, *mesh_result);
 
 		return ent_rainbow_triangle;
 	}

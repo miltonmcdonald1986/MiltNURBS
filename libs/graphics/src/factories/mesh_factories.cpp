@@ -8,7 +8,7 @@
 namespace graphics::factories
 {
 
-	std::expected<components::MeshGL, std::string> create_rainbow_triangle_mesh()
+    engine::Result<components::MeshGL> create_rainbow_triangle_mesh()
 	{
         mesh::VertexLayout PosColorLayout{
             .stride = 6 * sizeof(float), // 3 pos + 3 color
@@ -29,14 +29,14 @@ namespace graphics::factories
             0, 1, 2
         };
 
-        auto meshResult = mesh::create_indexed_mesh_gl_layout(vertices, indices, PosColorLayout);
-        if (!meshResult)
-            return std::unexpected(std::format("Failed to create mesh: {}\n", meshResult.error()));
+        auto mesh_result = mesh::create_indexed_mesh_gl_layout(vertices, indices, PosColorLayout);
+        if (!mesh_result)
+            return std::unexpected(mesh_result.error());
 
-		return *meshResult;
+		return *mesh_result;
 	}
 
-    std::expected<components::MeshGL, std::string> create_textured_cube_mesh()
+    engine::Result<components::MeshGL> create_textured_cube_mesh()
     {
         // Each face has its own quad with UVs
         const float verts[] = {
@@ -107,7 +107,7 @@ namespace graphics::factories
         return mesh::create_mesh_gl_layout(verts, layout, GL_TRIANGLES);
     }
 
-    std::expected<components::MeshGL, std::string> create_textured_quad_mesh()
+    engine::Result<components::MeshGL> create_textured_quad_mesh()
     {
         // Interleaved vertex data: position (3 floats) + uv (2 floats)
         const float vertices[] =
@@ -149,7 +149,7 @@ namespace graphics::factories
         );
     }
 
-    std::expected<components::MeshGL, std::string> create_textured_triangle_mesh()
+    engine::Result<components::MeshGL> create_textured_triangle_mesh()
     {
         // Position + UV layout: 3 floats pos, 2 floats uv
         mesh::VertexLayout PosUvLayout{
@@ -170,7 +170,7 @@ namespace graphics::factories
         return mesh::create_mesh_gl_layout(vertices, PosUvLayout, GL_TRIANGLES);
     }
 
-    std::expected<components::MeshGL, std::string> create_triangle_mesh()
+    engine::Result<components::MeshGL> create_triangle_mesh()
     {
         // 3 vertices, each with 3 floats (x, y, z)
         static constexpr float vertices[] = {

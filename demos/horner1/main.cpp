@@ -27,28 +27,20 @@
 #include <graphics/ui/inspector.h>
 #include <graphics/ui/widgets.h>
 
-using graphics::camera::Camera;
-using graphics::camera::CameraController;
-using graphics::camera::CameraControllerState;
-using graphics::camera::CameraMatrices;
-using graphics::camera::OrthographicCamera;
-using graphics::camera::PerspectiveCamera;
-using graphics::engine::AppData;
-using graphics::engine::run;
-using graphics::scene::Scene;
+inline const std::string NAMESPACE = "";
 
-graphics::engine::Status init(AppData* p_data)
+graphics::engine::Status init(graphics::engine::AppData* p_data)
 {
     if (!p_data)
-        return std::unexpected(ERR("No app data found", "horner1"));
+        return std::unexpected(ERR("No app data found"));
 
-    Scene* p_scene = p_data->p_active_scene;
+    graphics::scene::Scene* p_scene = p_data->p_active_scene;
     if (!p_scene)
-        return std::unexpected(ERR("No active scene found", "horner1"));
+        return std::unexpected(ERR("No active scene found"));
 
     graphics::platform::Window* p_window = p_data->p_window;
     if (!p_window)
-        return std::unexpected(ERR("No window found", "horner1"));
+        return std::unexpected(ERR("No window found"));
 
     entt::registry& reg = p_scene->reg;
 
@@ -66,7 +58,7 @@ graphics::engine::Status init(AppData* p_data)
         if (auto tex_result = graphics::factories::create_texture_from_file(R"(C:\Users\milto\Downloads\wall.jpg)"))
             reg.emplace<graphics::components::Texture>(e, *tex_result);
         else
-            return std::unexpected(ERR("Failed to create texture.", "horner1"));
+            return std::unexpected(ERR("Failed to create texture."));
     }
 
     entt::entity camera = reg.create();
@@ -76,10 +68,10 @@ graphics::engine::Status init(AppData* p_data)
     return {};
 }
 
-graphics::engine::Status update(AppData* p_data)
+graphics::engine::Status update(graphics::engine::AppData* p_data)
 {
     if (!p_data)
-        return std::unexpected(ERR("No app data found", "horner1"));
+        return std::unexpected(ERR("No app data found"));
 
     // Optional UI
     graphics::ui::draw_entity_list(p_data);

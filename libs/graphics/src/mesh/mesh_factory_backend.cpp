@@ -1,9 +1,11 @@
 #include <graphics/mesh/mesh_factory_backend.h>
 
+inline const std::string NAMESPACE = "graphics::mesh";
+
 namespace graphics::mesh
 {
 
-    std::expected<components::MeshGL, std::string> create_indexed_mesh_gl_layout(std::span<const float> vertices, std::span<const unsigned int> indices, const VertexLayout& layout, GLenum primitive)
+    engine::Result<components::MeshGL> create_indexed_mesh_gl_layout(std::span<const float> vertices, std::span<const unsigned int> indices, const VertexLayout& layout, GLenum primitive)
     {
         components::MeshGL mesh{};
         mesh.primitive = primitive;
@@ -11,7 +13,7 @@ namespace graphics::mesh
 
         // Validate vertex count
         if ((vertices.size() * sizeof(float)) % layout.stride != 0)
-            return std::unexpected("Vertex data does not align with layout stride");
+            return std::unexpected(ERR("Vertex data does not align with layout stride"));
 
         // --- VAO ---
         glGenVertexArrays(1, &mesh.vao);
@@ -50,12 +52,12 @@ namespace graphics::mesh
         glBindVertexArray(0);
 
         if (glGetError() != GL_NO_ERROR)
-            return std::unexpected("Failed to create MeshGL with custom layout");
+            return std::unexpected(ERR("Failed to create MeshGL with custom layout"));
 
         return mesh;
     }
 
-    std::expected<components::MeshGL, std::string> create_indexed_mesh_gl_pos_only(std::span<const float> vertices, std::span<const unsigned int> indices, GLint componentsPerVertex, GLenum primitive)
+    engine::Result<components::MeshGL> create_indexed_mesh_gl_pos_only(std::span<const float> vertices, std::span<const unsigned int> indices, GLint componentsPerVertex, GLenum primitive)
     {
         VertexLayout layout{};
         layout.stride = componentsPerVertex * sizeof(float);
@@ -69,17 +71,17 @@ namespace graphics::mesh
         return create_indexed_mesh_gl_layout(vertices, indices, layout, primitive);
     }
 
-    std::expected<components::MeshGL, std::string> create_mesh_gl_layout(std::span<const float> vertices, const VertexLayout& layout, GLenum primitive)
+    engine::Result<components::MeshGL> create_mesh_gl_layout(std::span<const float> vertices, const VertexLayout& layout, GLenum primitive)
     {
         components::MeshGL mesh{};
         mesh.primitive = primitive;
 
         // Compute vertex count
         if (layout.stride == 0)
-            return std::unexpected("VertexLayout.stride must not be zero");
+            return std::unexpected(ERR("VertexLayout.stride must not be zero"));
 
         if ((vertices.size() * sizeof(float)) % layout.stride != 0)
-            return std::unexpected("Vertex data size does not match vertex stride");
+            return std::unexpected(ERR("Vertex data size does not match vertex stride"));
 
         mesh.vertexCount =
             static_cast<GLsizei>((vertices.size() * sizeof(float)) / layout.stride);
@@ -113,12 +115,12 @@ namespace graphics::mesh
         glBindVertexArray(0);
 
         if (glGetError() != GL_NO_ERROR)
-            return std::unexpected("Failed to create MeshGL");
+            return std::unexpected(ERR("Failed to create MeshGL"));
 
         return mesh;
     }
 
-    std::expected<components::MeshGL, std::string> create_mesh_gl_pos_only(std::span<const float> vertices, GLint componentsPerVertex, GLenum primitive)
+    engine::Result<components::MeshGL> create_mesh_gl_pos_only(std::span<const float> vertices, GLint componentsPerVertex, GLenum primitive)
     {
         VertexLayout layout{};
         layout.stride = componentsPerVertex * sizeof(float);

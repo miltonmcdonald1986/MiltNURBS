@@ -3,10 +3,12 @@
 #include <format>
 #include <fstream>
 
+inline const std::string NAMESPACE = "graphics::factories";
+
 namespace graphics::factories
 {
 
-	std::expected<GLuint, std::string> compile_shader(GLenum shader_type, const char* shader_source)
+	engine::Result<GLuint> compile_shader(GLenum shader_type, const char* shader_source)
 	{
 		GLuint shader = glCreateShader(shader_type);
 		glShaderSource(shader, 1, &shader_source, NULL);
@@ -20,13 +22,13 @@ namespace graphics::factories
 			std::string shaderTypeStr = (shader_type == GL_VERTEX_SHADER) ? "VERTEX" :
 				(shader_type == GL_FRAGMENT_SHADER) ? "FRAGMENT" :
 				"UNKNOWN";
-			return std::unexpected(std::format("ERROR::SHADER::{}::COMPILATION_FAILED\n{}\n", shaderTypeStr, infoLog));
+			return std::unexpected(ERR(std::format("ERROR::SHADER::{}::COMPILATION_FAILED:\n{}", shaderTypeStr, infoLog)));
 		}
 
 		return shader;
 	}
 
-	std::expected<GLuint, std::string> link_program(GLuint vertex_shader, GLuint fragment_shader)
+	engine::Result<GLuint> link_program(GLuint vertex_shader, GLuint fragment_shader)
 	{
 		GLuint shader_program = glCreateProgram();
 		glAttachShader(shader_program, vertex_shader);
@@ -37,12 +39,12 @@ namespace graphics::factories
 		glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
 		if (!success) {
 			glGetProgramInfoLog(shader_program, 512, NULL, infoLog);
-			return std::unexpected(std::format("ERROR::SHADER::PROGRAM::LINKING_FAILED\n{}\n", infoLog));
+			return std::unexpected(ERR(std::format("ERROR::SHADER::PROGRAM::LINKING_FAILED\n{}\n", infoLog)));
 		}
 		return shader_program;
 	}
 
-	std::expected<GLuint, std::string> create_program_from_sources(const char* vertex_shader_source, const char* fragment_shader_source)
+	engine::Result<GLuint> create_program_from_sources(const char* vertex_shader_source, const char* fragment_shader_source)
 	{
 		struct ShaderHandle
 		{
@@ -73,7 +75,7 @@ namespace graphics::factories
 		return *shader_program_result;
 	}
 
-	std::expected<GLuint, std::string> create_basic_shader()
+	engine::Result<GLuint> create_basic_shader()
 	{
 		const char* vertex_shader_source = "#version 330 core\n"
 			"layout (location = 0) in vec3 aPos;\n"
@@ -96,7 +98,7 @@ namespace graphics::factories
 		return *shader_program_result;
 	}
 
-	std::expected<GLuint, std::string> create_color_shader()
+	engine::Result<GLuint> create_color_shader()
 	{
 		const char* vertex_shader_source = "#version 330 core\n"
 			"layout (location = 0) in vec3 aPos;\n"
@@ -120,13 +122,13 @@ namespace graphics::factories
 		return *shader_program_result;
 	}
 
-	std::expected<GLuint, std::string> create_shader_from_files(const std::filesystem::path& vertex_path, const std::filesystem::path& fragment_path)
+	engine::Result<GLuint> create_shader_from_files(const std::filesystem::path& vertex_path, const std::filesystem::path& fragment_path)
 	{
-		auto load_text_file = [](const std::filesystem::path & path) -> std::expected<std::string, std::string>
+		auto load_text_file = [](const std::filesystem::path & path) -> engine::Result<std::string>
 		{
 			std::ifstream file(path);
 			if (!file.is_open())
-				return std::unexpected(std::format("Failed to open file: {}", path.string()));
+				return std::unexpected(ERR(std::format("Failed to open file: {}", path.string())));
 
 			std::stringstream buffer;
 			buffer << file.rdbuf();
@@ -147,7 +149,7 @@ namespace graphics::factories
 		return create_program_from_sources(vertex_src_result->c_str(), fragment_src_result->c_str());
 	}
 
-	std::expected<GLuint, std::string> create_textured_color_mvp_shader()
+	engine::Result<GLuint> create_textured_color_mvp_shader()
 	{
 		const char* vs = R"(
         #version 330 core
@@ -186,7 +188,7 @@ namespace graphics::factories
 		return create_program_from_sources(vs, fs);
 	}
 
-	std::expected<GLuint, std::string> create_textured_mvp_shader()
+	engine::Result<GLuint> create_textured_mvp_shader()
 	{
 		const char* vertex_src = R"(
         #version 330 core
@@ -222,7 +224,7 @@ namespace graphics::factories
 		return create_program_from_sources(vertex_src, fragment_src);
 	}
 
-	std::expected<GLuint, std::string> create_textured_shader()
+	engine::Result<GLuint> create_textured_shader()
 	{
 		static const char* vertex_src = R"(
         #version 330 core
@@ -257,7 +259,7 @@ namespace graphics::factories
 	}
 
 
-	std::expected<GLuint, std::string> create_vertex_color_shader()
+	engine::Result<GLuint> create_vertex_color_shader()
 	{
 		const char* vertex_shader_source = "#version 330 core\n"
 			"layout (location = 0) in vec3 aPos;\n"
