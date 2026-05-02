@@ -4,6 +4,7 @@
 #include <expected>
 #include <string>
 
+#include <graphics/engine/result.h>
 #include <graphics/scene/scene.h>
 #include <graphics/systems/gl_state.h>
 
@@ -12,8 +13,8 @@ namespace graphics::rendering::renderer
 
 	struct Renderer
 	{
-		std::expected<void, std::string> init(int framebuffer_width, int framebuffer_height);
-		std::expected<void, std::string> update(scene::Scene* p_scene);
+		engine::Status init(int framebuffer_width, int framebuffer_height);
+		engine::Status update(scene::Scene* p_scene);
 
 		systems::gl_state::GLState gl_state;
 	};

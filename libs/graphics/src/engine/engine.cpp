@@ -2,6 +2,8 @@
 
 #include <graphics/camera/camera_systems.h>
 #include <graphics/engine/app_data.h>
+#include <graphics/engine/error.h>
+#include <graphics/engine/result.h>
 #include <graphics/input/input_systems.h>
 #include <graphics/platform/window.h>
 #include <graphics/rendering/renderer.h>
@@ -52,24 +54,24 @@ namespace
         }
     };
 
-    std::expected<void, std::string> init(AppData& data)
+    graphics::engine::Status init(AppData& data)
     {
         Window* p_window = data.p_window;
         if (!p_window)
-            return std::unexpected("No window found");
+            return std::unexpected(ERR("No window found", "Engine"));
 
         Renderer* p_renderer = data.p_renderer;
         if (!p_renderer)
-            return std::unexpected("No renderer found");
+            return std::unexpected(ERR("No renderer found", "Engine"));
 
         auto& gl_config = p_window->window_config.gl_config;
         if (auto result = p_window->init_glfw(&data, gl_config.version_major, gl_config.version_minor, gl_config.profile); !result)
-            return std::unexpected(std::format("Failed to initialize GLFW: {}", result.error()));
+            return std::unexpected(ERR("Failed to initialize GLFW", "Engine"));
 
         int w, h;
         glfwGetFramebufferSize(p_window->window_state.pHandle, &w, &h);
         if (auto result = p_renderer->init(w, h); !result)
-            return std::unexpected(std::format("Failed to initialize OpenGL state: {}", result.error()));
+            return std::unexpected(ERR("Failed to initialize OpenGL state", "Engine"));
 
         init_imgui(p_window->window_state.pHandle);
 
@@ -79,7 +81,7 @@ namespace
         return {};
     }
 
-    std::expected<void, std::string> loop(AppData& data, graphics::engine::UpdateFn update_fn)
+    graphics::engine::Status loop(AppData& data, graphics::engine::UpdateFn update_fn)
     {
         Window* p_window = data.p_window;
         if (!p_window)
@@ -95,7 +97,7 @@ namespace
 
             // USER SYSTEMS
             if (auto result = update_fn(&data); !result)
-                return std::unexpected(std::format("Update error: {}\n", result.error()));
+                return result;
 
             Renderer* p_renderer = data.p_renderer;
             if (!p_renderer)
@@ -116,7 +118,7 @@ namespace
             update_shake_once(p_scene->reg, data.time.dt);
 
             if (auto result = p_renderer->update(p_scene); !result)
-                return std::unexpected(std::format("Render error: {}", result.error()));
+                return result;
 
             data.input.reset_frame_accumulators();
         }
@@ -129,7 +131,7 @@ namespace
 namespace graphics::engine
 {
 	
-    std::expected<void, std::string> run(InitFn init_fn, UpdateFn update_fn)
+    Status run(InitFn init_fn, UpdateFn update_fn)
     {
         AppData data{};
 
@@ -144,14 +146,14 @@ namespace graphics::engine
 
         ImGuiTerminateGuard imgui_terminator{};
 
-        if (auto result = init(data); !result)
-            return std::unexpected(std::format("Failed to initialize engine: {}", result.error()));
+        if (Status result = init(data); !result)
+            return result;
 
         if (auto result = init_fn(&data); !result)
-            return std::unexpected(std::format("User init function failed: {}", result.error()));
+            return result;
 
         if (auto result = loop(data, update_fn); !result)
-            return std::unexpected(std::format("Error in engine loop: {}", result.error()));
+            return result;
 
         return {};
     }

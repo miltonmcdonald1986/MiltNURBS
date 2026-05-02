@@ -5,15 +5,17 @@
 #include <functional>
 #include <string>
 
+#include <graphics/engine/result.h>
+
 namespace graphics::engine { struct AppData; }
 
 namespace graphics::engine
 {
 
-	using InitFn = std::function<std::expected<void, std::string>(engine::AppData*)>;
-	using UpdateFn = std::function<std::expected<void, std::string>(engine::AppData*)>;
+	using InitFn = std::function<Status(engine::AppData*)>;
+	using UpdateFn = std::function<Status(engine::AppData*)>;
 
-	std::expected<void, std::string> run(InitFn init_fn, UpdateFn update_fn);
+	Status run(InitFn init_fn, UpdateFn update_fn);
 
 }
 

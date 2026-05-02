@@ -33,7 +33,7 @@ namespace graphics::rendering::renderer
         return glm::vec4(color.rgba[0] * intensity, color.rgba[1] * intensity, color.rgba[2] * intensity, color.rgba[3]);
     }
 
-    std::expected<void, std::string> Renderer::init(int framebuffer_width, int framebuffer_height)
+    engine::Status Renderer::init(int framebuffer_width, int framebuffer_height)
     {
         glViewport(0, 0, framebuffer_width, framebuffer_height);
 
@@ -50,15 +50,15 @@ namespace graphics::rendering::renderer
 
         // Check for any OpenGL errors that may have occurred during initialization.
         if (glGetError() != GL_NO_ERROR)
-            return std::unexpected("Failed to init GL state");
+            return std::unexpected(ERR("Failed to init GL state", "Rendering"));
 
         return {};
     }
 
-    std::expected<void, std::string> Renderer::update(Scene* p_scene)
+    engine::Status Renderer::update(Scene* p_scene)
     {
         if (!p_scene)
-            return std::unexpected("No active scene found");
+            return std::unexpected(ERR("No active scene found", "Rendering"));
 
         entt::registry& reg = p_scene->reg;
 

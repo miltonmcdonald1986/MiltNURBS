@@ -61,18 +61,18 @@ using graphics::ui::widgets::draw_shake_once_widget;
 using graphics::ui::widgets::draw_per_entity_color_widget;
 using graphics::ui::widgets::draw_render_settings_widget;
 
-std::expected<void, std::string> init(AppData* p_data)
+graphics::engine::Status init(AppData* p_data)
 {
     if (!p_data)
-        return std::unexpected("No app data found");
+        return std::unexpected(ERR("No app data found", "horner1"));
 
     Scene* p_scene = p_data->p_active_scene;
     if (!p_scene)
-        return std::unexpected("No active scene found");
+        return std::unexpected(ERR("No active scene found", "horner1"));
 
     Window* p_window = p_data->p_window;
     if (!p_window)
-        return std::unexpected("No window found");
+        return std::unexpected(ERR("No window found", "horner1"));
 
     entt::registry& reg = p_scene->reg;
 
@@ -90,7 +90,7 @@ std::expected<void, std::string> init(AppData* p_data)
         if (auto tex_result = create_texture_from_file(R"(C:\Users\milto\Downloads\wall.jpg)"))
             reg.emplace<Texture>(e, *tex_result);
         else
-            return std::unexpected("Failed to load texture");
+            return std::unexpected(ERR("Failed to create texture.", "horner1"));
     }
 
     entt::entity camera = reg.create();
@@ -100,10 +100,10 @@ std::expected<void, std::string> init(AppData* p_data)
     return {};
 }
 
-std::expected<void, std::string> update(AppData* p_data)
+graphics::engine::Status update(AppData* p_data)
 {
     if (!p_data)
-        return std::unexpected("No app data found");
+        return std::unexpected(ERR("No app data found", "horner1"));
 
     // Optional UI
     draw_entity_list(p_data);
