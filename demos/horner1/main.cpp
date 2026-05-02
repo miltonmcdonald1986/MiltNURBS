@@ -1,46 +1,34 @@
-#include <graphics/camera/camera.h>
-#include <graphics/camera/camera_controller.h>
-#include <graphics/camera/camera_controller_state.h>
+#include <string>
+
+#include <entt/entt.hpp>
+
 #include <graphics/camera/camera_factory.h>
-#include <graphics/camera/camera_matrices.h>
-#include <graphics/camera/orthographic_camera.h>
-#include <graphics/camera/perspective_camera.h>
 #include <graphics/components/color.h>
 #include <graphics/components/flash.h>
 #include <graphics/components/mesh_gl.h>
-#include <graphics/components/parent.h>
 #include <graphics/components/shader.h>
-#include <graphics/components/shake.h>
-#include <graphics/components/tags.h>
-#include <graphics/components/texture.h>
-#include <graphics/components/transform.h>
 #include <graphics/engine/app_data.h>
 #include <graphics/engine/engine.h>
+#include <graphics/engine/result.h>
 #include <graphics/factories/mesh_factories.h>
-#include <graphics/factories/texture_factories.h>
 #include <graphics/factories/shader_factories.h>
-#include <graphics/platform/glfw_callbacks.h>
-#include <graphics/platform/window.h>
+#include <graphics/factories/texture_factories.h>
 #include <graphics/scene/scene.h>
-#include <graphics/systems/animation.h>
 #include <graphics/ui/entity_list.h>
 #include <graphics/ui/inspector.h>
-#include <graphics/ui/widgets.h>
-
-inline const std::string NAMESPACE = "";
 
 graphics::engine::Status init(graphics::engine::AppData* p_data)
 {
     if (!p_data)
-        return std::unexpected(ERR("No app data found"));
+        return std::unexpected(ERR("No app data found", "horner1"));
 
     graphics::scene::Scene* p_scene = p_data->p_active_scene;
     if (!p_scene)
-        return std::unexpected(ERR("No active scene found"));
+        return std::unexpected(ERR("No active scene found", "horner1"));
 
     graphics::platform::Window* p_window = p_data->p_window;
     if (!p_window)
-        return std::unexpected(ERR("No window found"));
+        return std::unexpected(ERR("No window found", "horner1"));
 
     entt::registry& reg = p_scene->reg;
 
@@ -58,7 +46,7 @@ graphics::engine::Status init(graphics::engine::AppData* p_data)
         if (auto tex_result = graphics::factories::create_texture_from_file(R"(C:\Users\milto\Downloads\wall.jpg)"))
             reg.emplace<graphics::components::Texture>(e, *tex_result);
         else
-            return std::unexpected(ERR("Failed to create texture."));
+            return std::unexpected(ERR("Failed to create texture.", "horner1"));
     }
 
     entt::entity camera = reg.create();
@@ -71,7 +59,7 @@ graphics::engine::Status init(graphics::engine::AppData* p_data)
 graphics::engine::Status update(graphics::engine::AppData* p_data)
 {
     if (!p_data)
-        return std::unexpected(ERR("No app data found"));
+        return std::unexpected(ERR("No app data found", "horner1"));
 
     // Optional UI
     graphics::ui::draw_entity_list(p_data);

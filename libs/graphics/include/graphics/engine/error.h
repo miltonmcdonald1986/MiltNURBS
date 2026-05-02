@@ -9,11 +9,21 @@
     #define CAPTURE_TRACE std::stacktrace{}
 #endif
 
-#define ERR(msg) \
-    graphics::engine::ErrorInfo{ msg, NAMESPACE, __FILE__, __LINE__, CAPTURE_TRACE }
+#define ERR(msg, category) \
+    graphics::engine::ErrorInfo{ msg, category, __FILE__, __LINE__, CAPTURE_TRACE }
 
 namespace graphics::engine
 {
+
+    namespace error_categories
+    {
+
+        constexpr const char* Engine = "graphics::engine";
+        constexpr const char* Factories = "graphics::factories";
+        constexpr const char* Mesh = "graphics::mesh";
+        constexpr const char* Rendering = "graphics::rendering";
+
+    }
 
     struct ErrorInfo 
     {

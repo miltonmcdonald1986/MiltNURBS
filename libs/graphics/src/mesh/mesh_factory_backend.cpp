@@ -1,6 +1,6 @@
 #include <graphics/mesh/mesh_factory_backend.h>
 
-inline const std::string NAMESPACE = "graphics::mesh";
+#include <graphics/engine/error.h>
 
 namespace graphics::mesh
 {
@@ -13,7 +13,7 @@ namespace graphics::mesh
 
         // Validate vertex count
         if ((vertices.size() * sizeof(float)) % layout.stride != 0)
-            return std::unexpected(ERR("Vertex data does not align with layout stride"));
+            return std::unexpected(ERR("Vertex data size is not aligned to the vertex layout stride", engine::error_categories::Mesh));
 
         // --- VAO ---
         glGenVertexArrays(1, &mesh.vao);
@@ -38,21 +38,14 @@ namespace graphics::mesh
         // --- Attributes ---
         for (const auto& attr : layout.attributes)
         {
-            glVertexAttribPointer(
-                attr.index,
-                attr.components,
-                GL_FLOAT,
-                GL_FALSE,
-                static_cast<GLsizei>(layout.stride),
-                reinterpret_cast<const void*>(attr.offset)
-            );
+            glVertexAttribPointer(attr.index, attr.components, GL_FLOAT, GL_FALSE, static_cast<GLsizei>(layout.stride), reinterpret_cast<const void*>(attr.offset));
             glEnableVertexAttribArray(attr.index);
         }
 
         glBindVertexArray(0);
 
         if (glGetError() != GL_NO_ERROR)
-            return std::unexpected(ERR("Failed to create MeshGL with custom layout"));
+            return std::unexpected(ERR("OpenGL error during vertex attribute setup", engine::error_categories::Mesh));
 
         return mesh;
     }
@@ -78,10 +71,10 @@ namespace graphics::mesh
 
         // Compute vertex count
         if (layout.stride == 0)
-            return std::unexpected(ERR("VertexLayout.stride must not be zero"));
+            return std::unexpected(ERR("VertexLayout stride must not be zero", engine::error_categories::Mesh));
 
         if ((vertices.size() * sizeof(float)) % layout.stride != 0)
-            return std::unexpected(ERR("Vertex data size does not match vertex stride"));
+            return std::unexpected(ERR("Vertex data size is not aligned to the vertex layout stride", engine::error_categories::Mesh));
 
         mesh.vertexCount =
             static_cast<GLsizei>((vertices.size() * sizeof(float)) / layout.stride);
@@ -115,7 +108,7 @@ namespace graphics::mesh
         glBindVertexArray(0);
 
         if (glGetError() != GL_NO_ERROR)
-            return std::unexpected(ERR("Failed to create MeshGL"));
+            return std::unexpected(ERR("OpenGL error during vertex attribute setup", engine::error_categories::Mesh));
 
         return mesh;
     }

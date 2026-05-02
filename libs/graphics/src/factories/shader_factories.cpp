@@ -3,8 +3,6 @@
 #include <format>
 #include <fstream>
 
-inline const std::string NAMESPACE = "graphics::factories";
-
 namespace graphics::factories
 {
 
@@ -22,7 +20,7 @@ namespace graphics::factories
 			std::string shaderTypeStr = (shader_type == GL_VERTEX_SHADER) ? "VERTEX" :
 				(shader_type == GL_FRAGMENT_SHADER) ? "FRAGMENT" :
 				"UNKNOWN";
-			return std::unexpected(ERR(std::format("ERROR::SHADER::{}::COMPILATION_FAILED:\n{}", shaderTypeStr, infoLog)));
+			return std::unexpected(ERR(std::format("ERROR::SHADER::{}::COMPILATION_FAILED:\n{}", shaderTypeStr, infoLog), engine::error_categories::Factories));
 		}
 
 		return shader;
@@ -39,7 +37,7 @@ namespace graphics::factories
 		glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
 		if (!success) {
 			glGetProgramInfoLog(shader_program, 512, NULL, infoLog);
-			return std::unexpected(ERR(std::format("ERROR::SHADER::PROGRAM::LINKING_FAILED\n{}\n", infoLog)));
+			return std::unexpected(ERR(std::format("ERROR::SHADER::PROGRAM::LINKING_FAILED\n{}\n", infoLog), engine::error_categories::Factories));
 		}
 		return shader_program;
 	}
@@ -128,7 +126,7 @@ namespace graphics::factories
 		{
 			std::ifstream file(path);
 			if (!file.is_open())
-				return std::unexpected(ERR(std::format("Failed to open file: {}", path.string())));
+				return std::unexpected(ERR(std::format("Failed to open file: {}", path.string()), engine::error_categories::Factories));
 
 			std::stringstream buffer;
 			buffer << file.rdbuf();
